@@ -1,15 +1,13 @@
-# This is your home-manager configuration file
-# Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
-{
-  inputs,
-  lib,
-  config,
-  pkgs,
-  ...
+# This replaces ~/.config/nixpkgs/home.nix)
+{ inputs
+, lib
+, config
+, pkgs
+, ...
 }: {
   # You can import other home-manager modules here
   imports = [
-    # If you want to use home-manager modules from other flakes (such as nix-colors):
+    # TODO: in the future I might want to use home-manager modules from other flakes
     # inputs.nix-colors.homeManagerModule
 
     # You can also split up your configuration and import pieces of it here:
@@ -17,7 +15,7 @@
   ];
 
   nixpkgs = {
-    # You can add overlays here
+
     overlays = [
       # If you want to use overlays exported from other flakes:
       # neovim-nightly-overlay.overlays.default
@@ -29,29 +27,48 @@
       #   });
       # })
     ];
-    # Configure your nixpkgs instance
+
     config = {
-      # Disable if you don't want unfree packages
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
       allowUnfreePredicate = _: true;
     };
   };
 
-  # TODO: Set your username
   home = {
     username = "thiago";
     homeDirectory = "/home/thiago";
   };
 
-  # Add stuff for your user as you see fit:
-  # programs.neovim.enable = true;
-  # home.packages = with pkgs; [ steam ];
+  # NEOVIM
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
+    vimdiffAlias = true;
+  };
+  #GIT
+  programs.git = {
+    enable = true;
+  };
 
-  # Enable home-manager and git
+  #VS CODE
+  programs.vscode = {
+    enable = true;
+    package = pkgs.vscode;
+    extensions = with pkgs.vscode-extensions; [
+      bbenoist.nix
+      jnoortheen.nix-ide
+      arcticicestudio.nord-visual-studio-code
+    ];
+    userSettings = {
+      "workbench.colorTheme" = "Nord";
+      "terminal.integrated.fontFamily" = "Hack";
+    };
+  };
+
   programs.home-manager.enable = true;
-  programs.git.enable = true;
-
   # Nicely reload system units when changing configs
   systemd.user.startServices = "sd-switch";
 
