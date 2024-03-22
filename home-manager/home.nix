@@ -51,6 +51,7 @@
   #GIT
   programs.git = {
     enable = true;
+    lfs.enable = true;
   };
 
   #VS CODE
