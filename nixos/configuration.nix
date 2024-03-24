@@ -22,10 +22,16 @@
   networking.networkmanager.enable = true;
 
   time.timeZone = "America/Sao_Paulo";
+  services.xserver.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6 = {
+    enable = true;
+    enableQt5Integration = true;
+  };
 
   services.xserver.enable = true;
   services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  
+  # services.xserver.desktopManager.plasma6.enable = true;
   services.xserver.libinput.enable = true;
 
   # This will add each flake input as a registry
@@ -50,7 +56,6 @@
     auto-optimise-store = true;
   };
 
-  # FIXME: Add the rest of your current configuration
   environment.systemPackages = with pkgs; [
     wget
     git
@@ -69,12 +74,15 @@
       description = "Thiago Sposito";
       extraGroups = [ "networkmanager" "wheel" ];
       packages = with pkgs; [
+        steam
+        nordic
         nmap
         vim
         vscode
         neovim
         sysbench
         firefox
+        obsidian
       ];
     };
   };

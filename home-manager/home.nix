@@ -59,15 +59,19 @@
     enable = true;
     package = pkgs.vscode;
     extensions = with pkgs.vscode-extensions; [
+      eamodio.gitlens
       bbenoist.nix
       jnoortheen.nix-ide
       arcticicestudio.nord-visual-studio-code
     ];
     userSettings = {
-      "workbench.colorTheme" = "Nord";
+      "user.colorTheme" = "Nord";
+      "workbench.colorTheme"="Nord";
       "terminal.integrated.fontFamily" = "Hack";
     };
   };
+
+  
 
   programs.home-manager.enable = true;
   # Nicely reload system units when changing configs
