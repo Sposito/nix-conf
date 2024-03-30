@@ -49,9 +49,12 @@
     vimdiffAlias = true;
   };
   #GIT
+
   programs.git = {
     enable = true;
     lfs.enable = true;
+    	userEmail = "sposito.thiago@gmail.com";
+    	userName = "Thiago Sposito";
   };
 
   #VS CODE

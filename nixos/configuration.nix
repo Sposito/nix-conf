@@ -23,10 +23,15 @@
 
   time.timeZone = "America/Sao_Paulo";
   services.xserver.displayManager.sddm.wayland.enable = true;
-  services.desktopManager.plasma6 = {
+  # services.desktopManager.plasma6 = {
+  #   enable = true;
+  #   enableQt5Integration = true;
+  # };
+
+  programs.hyprland= {
     enable = true;
-    enableQt5Integration = true;
   };
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   services.xserver.enable = true;
   services.xserver.displayManager.sddm.enable = true;
@@ -64,6 +69,10 @@
     nil
     nixpkgs-fmt
     home-manager
+    rclone
+    gcsfuse
+    kdePackages.qtwebengine
+
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -73,6 +82,7 @@
       isNormalUser = true;
       description = "Thiago Sposito";
       extraGroups = [ "networkmanager" "wheel" ];
+      
       packages = with pkgs; [
         steam
         nordic
@@ -83,6 +93,13 @@
         sysbench
         firefox
         obsidian
+        whatsapp-for-linux
+        inkscape
+        blender
+        lapce
+        fira-code
+        waybar
+	kitty
       ];
     };
   };
