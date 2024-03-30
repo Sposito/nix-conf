@@ -47,32 +47,6 @@
     libinput
   ];
 
-  users.users = {
-    thiago = {
-      isNormalUser = true;
-      description = "Thiago Sposito";
-      extraGroups = [ "networkmanager" "wheel" ];
-
-      packages = with pkgs; [
-        steam
-        nordic
-        nmap
-        vim
-        vscode
-        neovim
-        sysbench
-        firefox
-        obsidian
-        whatsapp-for-linux
-        inkscape
-        blender
-        lapce
-        fira-code
-        waybar
-        kitty
-      ];
-    };
-  };
 
   services.openssh = {
     enable = true;
