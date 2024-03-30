@@ -9,12 +9,11 @@
 
   imports = [
     ./hardware-configuration.nix
+    ./apple.nix
   ];
 
   nixpkgs = {
-    # You can add overlays here
     overlays = [ ];
-
     config.allowUnfree = true;
   };
 
@@ -22,7 +21,6 @@
   networking.networkmanager.enable = true;
 
   time.timeZone = "America/Sao_Paulo";
-  services.xserver.displayManager.sddm.wayland.enable = true;
   # services.desktopManager.plasma6 = {
   #   enable = true;
   #   enableQt5Integration = true;
@@ -33,11 +31,18 @@
   };
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  services.xserver.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
+  services.xserver = {
+    displayManager.sddm.wayland.enable = true;
+    enable = true;
+    libinput = {
+      enable = true;
+      touchpad.tapping = false;
+      touchpad.clickMethod = "clickfinger";
+    };
+  };
+
   
   # services.xserver.desktopManager.plasma6.enable = true;
-  services.xserver.libinput.enable = true;
 
   # This will add each flake input as a registry
   # To make nix3 commands consistent with your flake
@@ -71,7 +76,9 @@
     home-manager
     rclone
     gcsfuse
-    kdePackages.qtwebengine
+    hwinfo
+    libinput
+    # kdePackages.qtwebengine
 
   ];
 
