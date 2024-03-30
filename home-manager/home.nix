@@ -38,40 +38,67 @@
   home = {
     username = "thiago";
     homeDirectory = "/home/thiago";
-  };
-
-  # NEOVIM
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
-    vimdiffAlias = true;
-  };
-  #GIT
-  programs.git = {
-    enable = true;
-  };
-
-  #VS CODE
-  programs.vscode = {
-    enable = true;
-    package = pkgs.vscode;
-    extensions = with pkgs.vscode-extensions; [
-      bbenoist.nix
-      jnoortheen.nix-ide
-      arcticicestudio.nord-visual-studio-code
+    packages = with pkgs;[
+        steam
+        nordic
+        sysbench
+        firefox
+        obsidian
+        whatsapp-for-linux
+        inkscape
+        blender
+        fira-code
+        waybar
+        kitty
     ];
-    userSettings = {
-      "workbench.colorTheme" = "Nord";
-      "terminal.integrated.fontFamily" = "Hack";
-    };
   };
 
-  programs.home-manager.enable = true;
+
+
+  programs = {
+    # NEOVIM
+    neovim = {
+      enable = true;
+      defaultEditor = true;
+      viAlias = true;
+      vimAlias = true;
+      vimdiffAlias = true;
+    };
+
+    #GIT
+    git = {
+      enable = true;
+      lfs.enable = true;
+      userEmail = "sposito.thiago@gmail.com";
+      userName = "Thiago Sposito";
+    };
+
+    #VS CODE
+    vscode = {
+      enable = true;
+      package = pkgs.vscode;
+      extensions = with pkgs.vscode-extensions; [
+        eamodio.gitlens
+        bbenoist.nix
+        jnoortheen.nix-ide
+        arcticicestudio.nord-visual-studio-code
+      ];
+
+
+      userSettings = {
+        "user.colorTheme" = "Nord";
+        "workbench.colorTheme" = "Nord";
+        "terminal.integrated.fontFamily" = "Hack";
+      };
+    };
+
+    home-manager.enable = true;
+  };
+
+
   # Nicely reload system units when changing configs
   systemd.user.startServices = "sd-switch";
 
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+
   home.stateVersion = "23.11";
 }
