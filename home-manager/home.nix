@@ -39,17 +39,20 @@
     username = "thiago";
     homeDirectory = "/home/thiago";
     packages = with pkgs;[
-        steam
-        nordic
-        sysbench
-        firefox
-        obsidian
-        whatsapp-for-linux
-        inkscape
-        blender
-        fira-code
-        waybar
-        kitty
+      nil
+      steam
+      nordic
+      sysbench
+      firefox
+      obsidian
+      whatsapp-for-linux
+      inkscape
+      blender
+      fira-code
+      waybar
+      kitty
+      nixpkgs-fmt
+      rclone
     ];
   };
 

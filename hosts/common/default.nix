@@ -33,6 +33,20 @@
     auto-optimise-store = true;
   };
 
+    environment.systemPackages = with pkgs; [
+    wget
+    git
+    exfat
+    neovim
+    nil
+    nixpkgs-fmt
+    home-manager
+    rclone
+    gcsfuse
+    hwinfo
+    libinput
+  ];
+
 
 
 }
