@@ -10,6 +10,7 @@
   imports = [
     ./hardware-configuration.nix
     ./apple.nix
+    ../common/default.nix
   ];
 
   nixpkgs = {
@@ -18,17 +19,13 @@
   };
 
   networking.hostName = "Nixbook";
-  networking.networkmanager.enable = true;
 
   time.timeZone = "America/Sao_Paulo";
-  # services.desktopManager.plasma6 = {
-  #   enable = true;
-  #   enableQt5Integration = true;
-  # };
 
-  programs.hyprland= {
+  programs.hyprland = {
     enable = true;
   };
+
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   services.xserver = {
@@ -36,16 +33,11 @@
     enable = true;
     libinput = {
       enable = true;
-      touchpad.tapping = false;
       touchpad.clickMethod = "clickfinger";
     };
   };
 
-  
-  # services.xserver.desktopManager.plasma6.enable = true;
-
-  # This will add each flake input as a registry
-  # To make nix3 commands consistent with your flake
+  # This will add each flake input as a registry to make nix3 commands consistent with your flake
   nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
 
   # This will additionally add your inputs to the system's legacy channels
@@ -89,7 +81,7 @@
       isNormalUser = true;
       description = "Thiago Sposito";
       extraGroups = [ "networkmanager" "wheel" ];
-      
+
       packages = with pkgs; [
         steam
         nordic
@@ -106,7 +98,7 @@
         lapce
         fira-code
         waybar
-	kitty
+        kitty
       ];
     };
   };
