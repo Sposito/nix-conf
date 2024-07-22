@@ -45,6 +45,8 @@
     gcsfuse
     hwinfo
     libinput
+    file
+    
   ];
 
 

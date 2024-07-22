@@ -49,7 +49,6 @@
       inkscape
       blender
       fira-code
-      waybar
       kitty
       nixpkgs-fmt
       rclone
