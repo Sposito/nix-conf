@@ -10,6 +10,7 @@
   imports = [
     ./hardware-configuration.nix
     ../common/default.nix
+    ../common/nvidia/default.nix
   ];
 
 
