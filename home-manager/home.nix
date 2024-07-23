@@ -52,6 +52,13 @@
       kitty
       nixpkgs-fmt
       rclone
+
+      mkShell {
+        buildInputs = with pkgs; [
+          rnix-lsp
+        ];
+      }
+      
     ];
   };
 
@@ -91,6 +98,7 @@
         "user.colorTheme" = "Nord";
         "workbench.colorTheme" = "Nord";
         "terminal.integrated.fontFamily" = "Hack";
+        "nix.enableLanguageServer" = true;
       };
     };
 
