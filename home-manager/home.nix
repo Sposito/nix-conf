@@ -3,6 +3,7 @@
 , lib
 , config
 , pkgs
+, programs
 , ...
 }: {
   # You can import other home-manager modules here
@@ -49,7 +50,7 @@
     homeDirectory = "/home/thiago";
     packages = with pkgs;[
       nil
-      steam
+      # steam
       nordic
       sysbench
       firefox
