@@ -3,7 +3,6 @@
 , lib
 , config
 , pkgs
-, programs
 , ...
 }: {
   # You can import other home-manager modules here
@@ -62,12 +61,11 @@
       kitty
       nixpkgs-fmt
       rclone
-
+      lilipod
+      distrobox
+      
     ];
   };
-  
-
-
 
   programs = {
     neovim = {
@@ -78,7 +76,6 @@
       vimdiffAlias = true;
     };
 
-    #GIT
     git = {
       enable = true;
       lfs.enable = true;
@@ -86,7 +83,6 @@
       userName = "Thiago Sposito";
     };
 
-    #VS CODE
     vscode = {
       enable = true;
       package = pkgs.vscode;
@@ -96,7 +92,6 @@
         jnoortheen.nix-ide
         arcticicestudio.nord-visual-studio-code
       ];
-
 
       userSettings = {
         "user.colorTheme" = "Nord";
@@ -109,10 +104,6 @@
     home-manager.enable = true;
   };
 
-
-  # Nicely reload system units when changing configs
-  systemd.user.startServices = "sd-switch";
-
-
-  home.stateVersion = "23.11";
+  systemd.user.startServices = "sd-switch";   # Nicely reload system units when changing configs
+  home.stateVersion = "24.05";
 }
