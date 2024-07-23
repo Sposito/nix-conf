@@ -27,7 +27,7 @@
       #   });
       # })
     ];
-
+    programs.steam.enable = true;
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
@@ -53,19 +53,13 @@
       nixpkgs-fmt
       rclone
 
-      mkShell {
-        buildInputs = with pkgs; [
-          rnix-lsp
-        ];
-      }
-      
     ];
   };
+  
 
 
 
   programs = {
-    # NEOVIM
     neovim = {
       enable = true;
       defaultEditor = true;
