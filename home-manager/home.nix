@@ -13,7 +13,7 @@
     # You can also split up your configuration and import pieces of it here:
     # ./nvim.nix
   ];
-
+  programs.steam.enable = true;
   nixpkgs = {
 
     overlays = [
@@ -27,7 +27,7 @@
       #   });
       # })
     ];
-    programs.steam.enable = true;
+    
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
