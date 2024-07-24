@@ -49,7 +49,6 @@
     homeDirectory = "/home/thiago";
     packages = with pkgs;[
       nil
-      transmission
       transmission-gtk
       # steam
       nordic

@@ -12,6 +12,8 @@ in
       "podman"
       "git"
       "libvirtd"
+      "libvirt"
+      "kvm"
     ];
 
     packages = [ pkgs.home-manager ];
