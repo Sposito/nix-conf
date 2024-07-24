@@ -96,11 +96,15 @@
   nixpkgs.config.allowUnfree = true;
 
   services.openssh.enable = true;
-
+  virtualisation.spiceUSBRedirection.enable = true;
   virtualisation.libvirtd = {
     enable = true;
-    qemuOvmf = true;
+    qemu.ovmf.enable = true;
   };
+  # virtualisation.libvirtd = {
+  #   enable = true;
+  #   qemuOvmf = true;
+  # };
   
   programs.virt-manager.enable = true;
 
