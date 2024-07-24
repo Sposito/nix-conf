@@ -9,7 +9,7 @@
     ./hardware-configuration.nix
     ../common/default.nix
     ../common/nvidia/default.nix
-    ../common/docker/default.nix
+    ../common/podman/default.nix
   ];
 
   # Bootloader.
@@ -32,6 +32,7 @@
     hwinfo
     libinput
     gnome3.gnome-tweaks
+
   ];
 
   programs.steam = {
