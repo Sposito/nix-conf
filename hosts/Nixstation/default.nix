@@ -8,6 +8,7 @@
   imports = [
     ./hardware-configuration.nix
     ../common/default.nix
+    ../common/screen.nix
     ../common/nvidia/default.nix
     ../common/podman/default.nix
   ];
