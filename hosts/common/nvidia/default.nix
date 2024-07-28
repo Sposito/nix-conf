@@ -11,7 +11,7 @@
     enable = true;
     videoDrivers = [ "nvidia" ];
   };
-
+  cudaSupport = true;
   environment.systemPackages = with pkgs; [
     mesa
     glxinfo
@@ -25,4 +25,6 @@
     nvidiaSettings = true;
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
+
+  
 }
