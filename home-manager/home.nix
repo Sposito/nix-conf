@@ -13,24 +13,10 @@
     ./zsh.nix
     ./kitty.nix
   ];
-  # programs.steam = {
-  #   enable = true;
-  #   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-  #   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-  #   localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
-  # };
+
   nixpkgs = {
-
     overlays = [
-      # If you want to use overlays exported from other flakes:
-      # neovim-nightly-overlay.overlays.default
-
-      # Or define it inline, for example:
-      # (final: prev: {
-      #   hi = final.hello.overrideAttrs (oldAttrs: {
-      #     patches = [ ./change-hello-to-hi.patch ];
-      #   });
-      # })
+      (import ./blender.nix).overlays.default
     ];
 
     config = {
@@ -57,12 +43,14 @@
       obsidian
       whatsapp-for-linux
       inkscape
-      blender
       fira-code
       nixpkgs-fmt
       rclone
       lilipod
       distrobox
+
+      # Add Blender packages here
+      (import ./blender.nix).packages.x86_64-linux.blender_4_1
     ];
   };
 
