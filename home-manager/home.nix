@@ -9,6 +9,7 @@
   imports = [
 
     ./gnome.nix
+    ./vscode.nix
   ];
   # programs.steam = {
   #   enable = true;
