@@ -15,6 +15,7 @@
   ];
 
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.cudaSupport = true;
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -39,7 +40,6 @@
     LC_TIME = "pt_BR.UTF-8";
   };
 
-
   environment.systemPackages = with pkgs; [
     wget
     python3
@@ -55,6 +55,7 @@
     gnome3.gnome-tweaks
     gnome3.gnome-session
     zsh
+    cudatoolkit
   ];
 
   programs.steam = {
@@ -70,7 +71,9 @@
   services.xserver.desktopManager.gnome.enable = true;
   services.gnome.gnome-remote-desktop.enable = true;
   services.displayManager.autoLogin.enable = false;
-  # services.displayManager.autoLogin.user = "thiago";
+  services.displayManager.autoLogin.user = "thiago";
+  programs.dconf.enable = true;
+
 
   services.xrdp.enable = true;
   services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
@@ -88,9 +91,6 @@
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
 
-
-
-
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
@@ -102,11 +102,6 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
-
-
-
-
-
 
   virtualisation.spiceUSBRedirection.enable = true;
   virtualisation.libvirtd = {
