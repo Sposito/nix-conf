@@ -7,17 +7,14 @@
     
  programs.zsh = {
     enable = true;
-    enableAutosuggestions.enable = true;
+    programs.zsh.autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     oh-my-zsh = {
         enable = true;
         theme = "nord";
         plugins = [
             "git"
-            "npm"
             "history"
-            "node"
-            "rust"
             "deno"
         ];
     };
