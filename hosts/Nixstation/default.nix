@@ -53,6 +53,7 @@
     libinput
     gnome3.gnome-tweaks
     gnome3.gnome-session
+    zsh
   ];
 
   programs.steam = {
