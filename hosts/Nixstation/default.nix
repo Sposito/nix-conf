@@ -20,7 +20,8 @@
 
   time.timeZone = "America/Sao_Paulo";
 
-  services.xserver.xkb = {  # Configure keymap in X11
+  services.xserver.xkb = {
+    # Configure keymap in X11
     layout = "us";
     variant = "alt-intl";
   };
@@ -37,8 +38,8 @@
     LC_TELEPHONE = "pt_BR.UTF-8";
     LC_TIME = "pt_BR.UTF-8";
   };
-  
-  
+
+
   environment.systemPackages = with pkgs; [
     wget
     python3
@@ -61,20 +62,20 @@
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
     localNetworkGameTransfers.openFirewall = true;
-     # Open ports in the firewall for Steam Local Network Game Transfers
+    # Open ports in the firewall for Steam Local Network Game Transfers
   };
 
   services.xserver.enable = true;
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
-  services.gnome.gnome-remote-desktop.enable = true; 
+  services.gnome.gnome-remote-desktop.enable = true;
   services.displayManager.autoLogin.enable = false;
- # services.displayManager.autoLogin.user = "thiago";
+  # services.displayManager.autoLogin.user = "thiago";
 
   services.xrdp.enable = true;
   services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
   services.xrdp.openFirewall = true;
-  
+
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
@@ -106,7 +107,7 @@
 
 
 
-    
+
   virtualisation.spiceUSBRedirection.enable = true;
   virtualisation.libvirtd = {
     enable = true;
@@ -116,7 +117,7 @@
   #   enable = true;
   #   qemuOvmf = true;
   # };
-  
+
   programs.virt-manager.enable = true;
 
   system.stateVersion = "24.05"; # Did you read the comment?
