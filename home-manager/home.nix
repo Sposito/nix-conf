@@ -1,4 +1,4 @@
-# This replaces ~/.config/nixpkgs/home.nix)
+# ~/.config/nixpkgs/home.nix
 { inputs
 , lib
 , config
@@ -16,7 +16,7 @@
 
   nixpkgs = {
     overlays = [
-      (import ./blender.nix).overlays.default
+      (import ./blender-bin.nix).overlays.default
     ];
 
     config = {
@@ -26,6 +26,7 @@
         "steam"
         "steam-original"
         "steam-run"
+        "blender-bin"  # Add blender-bin to the unfree predicate list
       ];
     };
   };
@@ -48,6 +49,7 @@
       rclone
       lilipod
       distrobox
+      blender-bin  # Add blender-bin to the list of installed packages
     ];
   };
 
