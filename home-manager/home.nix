@@ -5,13 +5,10 @@
 , pkgs
 , ...
 }: {
-  # You can import other home-manager modules here
-  imports = [
-    # TODO: in the future I might want to use home-manager modules from other flakes
-    # inputs.nix-colors.homeManagerModule
 
-    # You can also split up your configuration and import pieces of it here:
-    # ./nvim.nix
+  imports = [
+
+    ./gnome.nix
   ];
   # programs.steam = {
   #   enable = true;
