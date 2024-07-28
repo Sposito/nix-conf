@@ -1,11 +1,10 @@
 { inputs
-# , lib
-# , config
-# , pkgs
+, lib
+, config
+
 , ...
 }: {
-users.defaultUserShell = pkgs.zsh;
-environment.shells = with pkgs; [ zsh ];
+
  programs.zsh = {
     enable = true;
     autosuggestion.enable = true;

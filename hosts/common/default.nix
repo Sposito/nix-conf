@@ -12,6 +12,10 @@
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "America/Sao_Paulo";
 
+
+  users.defaultUserShell = pkgs.zsh;
+  environment.shells = with pkgs; [ zsh ];
+  programs.zsh.enable = true;
   # This will add each flake input as a registry to make nix3 commands consistent with your flake
   nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
 
@@ -46,6 +50,7 @@
     hwinfo
     libinput
     file
+    zsh
     
   ];
 
