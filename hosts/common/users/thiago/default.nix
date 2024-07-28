@@ -4,8 +4,8 @@ in
 {
   users.users.thiago = {
     isNormalUser = true;
-    extraGroups = ["networkmanager" "wheel" ]
-    ++ ifTheyExist [
+    extraGroups = [ "networkmanager" "wheel" ]
+      ++ ifTheyExist [
       "wireshark"
       "i2c"
       "docker"

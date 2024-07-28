@@ -37,7 +37,7 @@
     auto-optimise-store = true;
   };
 
-    environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs; [
     wget
     git
     exfat
@@ -51,7 +51,7 @@
     libinput
     file
     zsh
-    
+
   ];
 
 
