@@ -1,17 +1,24 @@
 {
-    "nix.enableLanguageServer": true, // Enable LSP.
-    "nix.serverPath": "nil", // The path to the LSP server executable.
-  
-    "nix.serverSettings": {
-      // settings for 'nil' LSP
-      "nil": {
-        "diagnostics": {
-          "ignored": ["unused_binding", "unused_with"]
-        },
-        "formatting": {
-          "command": ["nixpkgs-fmt"]
-        }
+  "gitlens.telemetry.enabled": false,
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil",
+  "nix.serverSettings": {
+    "nil": {
+      "diagnostics": {
+        "ignored": [
+          "unused_binding",
+          "unused_with"
+        ]
+      },
+      "formatting": {
+        "command": [
+          "nixpkgs-fmt"
+        ]
       }
-    },
-    "nix.formatterPath": "nixpkgs-fmt"   
+    }
+  },
+
+  "terminal.integrated.fontFamily": "Hack",
+
+
 }
