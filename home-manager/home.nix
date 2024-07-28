@@ -48,9 +48,6 @@
       rclone
       lilipod
       distrobox
-
-      # Add Blender packages here
-      (import ./blender.nix).packages.x86_64-linux.blender_4_1
     ];
   };
 
