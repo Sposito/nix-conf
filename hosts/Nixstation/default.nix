@@ -15,7 +15,6 @@
   ];
 
   nixpkgs.config.allowUnfree = true;
-
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -53,7 +52,7 @@
     hwinfo
     libinput
     gnome3.gnome-tweaks
-
+    gnome3.gnome-session
   ];
 
   programs.steam = {
@@ -67,9 +66,22 @@
   services.xserver.enable = true;
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "thiago";
+  services.gnome.gnome-remote-desktop.enable = true; 
+  services.displayManager.autoLogin.enable = false;
+ # services.displayManager.autoLogin.user = "thiago";
+
+  services.xrdp.enable = true;
+  services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
+  services.xrdp.openFirewall = true;
   
+  # Open ports in the firewall.
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 3389 ];
+    allowedUDPPorts = [ 3389 ];
+  };
+
+
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
