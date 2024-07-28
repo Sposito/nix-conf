@@ -10,6 +10,7 @@
 
     ./gnome.nix
     ./vscode.nix
+    ./zsh.nix
   ];
   # programs.steam = {
   #   enable = true;
