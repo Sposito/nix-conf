@@ -1,9 +1,4 @@
-{ inputs
-, lib
-, config
-, pkgs
-, ...
-}: {
+{
     vscode = {
       enable = true;
       package = pkgs.vscode;
