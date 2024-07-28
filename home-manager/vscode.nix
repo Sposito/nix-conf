@@ -14,6 +14,10 @@ pkgs
       ];
 
       userSettings = {
+        "extensions.autoCheckUpdates" = false;
+        "update.mode" = "none";
+        "telemetry.telemetryLevel" = "off";
+        "gitlens.telemetry.enabled" = false;
         "user.colorTheme" = "Nord";
         "workbench.colorTheme" = "Nord";
         "terminal.integrated.fontFamily" = "Hack";
