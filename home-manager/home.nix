@@ -12,11 +12,12 @@
     ./vscode.nix
     ./zsh.nix
     ./kitty.nix
+    ./zig.nix
   ];
 
   nixpkgs = {
     overlays = [
-      (import ./blender-bin.nix).overlays.default
+
     ];
 
     config = {
@@ -26,7 +27,7 @@
         "steam"
         "steam-original"
         "steam-run"
-        "blender-bin"  # Add blender-bin to the unfree predicate list
+        "blender"
       ];
     };
   };
@@ -49,7 +50,8 @@
       rclone
       lilipod
       distrobox
-      blender-bin  # Add blender-bin to the list of installed packages
+      # blender
+      # blender-bin  # Add blender-bin to the list of installed packages
     ];
   };
 

@@ -12,6 +12,7 @@
     ../common/screen.nix
     ../common/nvidia/default.nix
     ../common/podman/default.nix
+#    ./unstable.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -56,6 +57,7 @@
     gnome3.gnome-session
     zsh
     cudatoolkit
+    blender
   ];
 
   programs.steam = {
