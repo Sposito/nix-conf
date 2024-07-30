@@ -14,7 +14,7 @@
         "code.desktop"
         "kitty.desktop"
       ];
-
+      
       enabled-extensions = [
         "user-theme@gnome-shell-extensions.gcampax.github.com"
         "trayIconsReloaded@selfmade.pl"
@@ -26,6 +26,7 @@
     };
   };
 
+
   home.packages = with pkgs; [
     gnomeExtensions.user-themes
     gnomeExtensions.tray-icons-reloaded
@@ -33,5 +34,7 @@
     gnomeExtensions.dash-to-panel
     gnomeExtensions.sound-output-device-chooser
     gnomeExtensions.space-bar
+    nordzy-icon-theme
+    
   ];
 }

@@ -10,6 +10,7 @@
       bbenoist.nix
       jnoortheen.nix-ide
       arcticicestudio.nord-visual-studio-code
+      
     ];
 
     userSettings = {
