@@ -13,6 +13,7 @@
     ./zsh.nix
     ./kitty.nix
     ./zig.nix
+    ./jetbrains.nix
   ];
 
   nixpkgs = {
@@ -44,12 +45,14 @@
       firefox
       obsidian
       whatsapp-for-linux
+      telegram-desktop
       inkscape
       fira-code
       nixpkgs-fmt
       rclone
       lilipod
       distrobox
+      uget
       # blender
       # blender-bin  # Add blender-bin to the list of installed packages
     ];
