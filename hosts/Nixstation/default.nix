@@ -12,7 +12,6 @@
     ../common/screen.nix
     ../common/nvidia/default.nix
     ../common/podman/default.nix
-#    ./unstable.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -58,6 +57,8 @@
     zsh
     cudatoolkit
     blender
+    darling-dmg
+    jetbrains.jdk
   ];
 
   programs.steam = {
