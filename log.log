@@ -1,0 +1,6089 @@
+Commit: e9a997358e41f9d4686f5482450981a345405baf
+----------------------------------------
+diff --git a/flake.lock b/flake.lock
+index 6a16e3e..c4cf8fb 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -162,11 +162,28 @@
+         "type": "github"
+       }
+     },
++    "nixpkgs-unstable": {
++      "locked": {
++        "lastModified": 1722062969,
++        "narHash": "sha256-QOS0ykELUmPbrrUGmegAUlpmUFznDQeR4q7rFhl8eQg=",
++        "owner": "nixos",
++        "repo": "nixpkgs",
++        "rev": "b73c2221a46c13557b1b3be9c2070cc42cf01eb3",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nixos",
++        "ref": "nixos-unstable",
++        "repo": "nixpkgs",
++        "type": "github"
++      }
++    },
+     "root": {
+       "inputs": {
+         "home-manager": "home-manager",
+         "hyprland": "hyprland",
+-        "nixpkgs": "nixpkgs"
++        "nixpkgs": "nixpkgs",
++        "nixpkgs-unstable": "nixpkgs-unstable"
+       }
+     },
+     "systems": {
+diff --git a/flake.nix b/flake.nix
+index 570b44d..1df7415 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -3,6 +3,7 @@
+ 
+   inputs = {
+     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
++    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+ 
+     home-manager = {
+       url = "github:nix-community/home-manager/master";
+@@ -18,6 +19,7 @@
+   outputs =
+     { self
+     , nixpkgs
++    , nixpkgs-unstable
+     , home-manager
+     , ...
+     } @ inputs:
+diff --git a/home-manager/blender-bin.nix b/home-manager/blender-bin.nix
+deleted file mode 100644
+index 06d0581..0000000
+--- a/home-manager/blender-bin.nix
++++ /dev/null
+@@ -1,91 +0,0 @@
+-{
+-  description = "A free and open source 3D creation suite (upstream binaries)";
+-
+-  inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
+-
+-  outputs = { self, nixpkgs }:
+-
+-    let
+-      pkgs = import nixpkgs {
+-        system = "x86_64-linux";
+-        overlays = [ self.overlays.default ];
+-      };
+-
+-      mkBlender = { pname, version, src }:
+-        with pkgs;
+-
+-        let
+-          libs =
+-            [ wayland libdecor xorg.libX11 xorg.libXi xorg.libXxf86vm xorg.libXfixes xorg.libXrender libxkbcommon libGLU libglvnd numactl SDL2 libdrm ocl-icd stdenv.cc.cc.lib openal ]
+-            ++ lib.optionals (lib.versionAtLeast version "3.5") [ xorg.libSM xorg.libICE zlib ];
+-        in
+-
+-        stdenv.mkDerivation rec {
+-          inherit pname version src;
+-
+-          buildInputs = [ makeWrapper ];
+-
+-          preUnpack =
+-            ''
+-              mkdir -p $out/libexec
+-              cd $out/libexec
+-            '';
+-
+-          installPhase =
+-            ''
+-              cd $out/libexec
+-              mv blender-* blender
+-
+-              mkdir -p $out/share/applications
+-              mv ./blender/blender.desktop $out/share/applications/blender.desktop
+-
+-              mkdir $out/bin
+-
+-              makeWrapper $out/libexec/blender/blender $out/bin/blender \
+-                --prefix LD_LIBRARY_PATH : /run/opengl-driver/lib:${lib.makeLibraryPath libs}
+-
+-              patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+-                blender/blender
+-
+-              patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)"  \
+-                $out/libexec/blender/*/python/bin/python3*
+-            '';
+-
+-          meta.mainProgram = "blender";
+-        };
+-
+-      mkTest = { blender }:
+-        pkgs.runCommand "blender-test" { buildInputs = [ blender ]; }
+-          ''
+-            blender --version
+-            touch $out
+-          '';
+-
+-    in {
+-
+-      overlays.default = final: prev: {
+-        blender_4_1 = mkBlender {
+-          pname = "blender-bin";
+-          version = "4.1.1";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender4.1/blender-4.1.1-linux-x64.tar.xz";
+-            hash = "sha256-qy6j/pkWAaXmvSzaeG7KqRnAs54FUOWZeLXUAnDCYNM=";
+-          };
+-        };
+-      };
+-
+-      lib.mkBlender = mkBlender;
+-
+-      packages.x86_64-linux = rec {
+-        inherit (pkgs)
+-
+-          blender_4_1;
+-        default = blender_4_1;
+-      };
+-
+-      checks.x86_64-linux = {
+-        blender_4_1  = mkTest { blender = self.packages.x86_64-linux.blender_4_1; };
+-      };
+-
+-    };
+-}
+\ No newline at end of file
+diff --git a/home-manager/gnome.nix b/home-manager/gnome.nix
+index 3bb98a5..38da597 100644
+--- a/home-manager/gnome.nix
++++ b/home-manager/gnome.nix
+@@ -14,7 +14,7 @@
+         "code.desktop"
+         "kitty.desktop"
+       ];
+-
++      
+       enabled-extensions = [
+         "user-theme@gnome-shell-extensions.gcampax.github.com"
+         "trayIconsReloaded@selfmade.pl"
+@@ -26,6 +26,7 @@
+     };
+   };
+ 
++
+   home.packages = with pkgs; [
+     gnomeExtensions.user-themes
+     gnomeExtensions.tray-icons-reloaded
+@@ -33,5 +34,7 @@
+     gnomeExtensions.dash-to-panel
+     gnomeExtensions.sound-output-device-chooser
+     gnomeExtensions.space-bar
++    nordzy-icon-theme
++    
+   ];
+ }
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 9f93f3d..47b7cf9 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -12,11 +12,12 @@
+     ./vscode.nix
+     ./zsh.nix
+     ./kitty.nix
++    ./zig.nix
+   ];
+ 
+   nixpkgs = {
+     overlays = [
+-      (import ./blender-bin.nix).overlays.default
++
+     ];
+ 
+     config = {
+@@ -26,7 +27,7 @@
+         "steam"
+         "steam-original"
+         "steam-run"
+-        "blender-bin"  # Add blender-bin to the unfree predicate list
++        "blender"
+       ];
+     };
+   };
+@@ -49,7 +50,8 @@
+       rclone
+       lilipod
+       distrobox
+-      blender-bin  # Add blender-bin to the list of installed packages
++      # blender
++      # blender-bin  # Add blender-bin to the list of installed packages
+     ];
+   };
+ 
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index b55e417..e164fd5 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -10,6 +10,7 @@
+       bbenoist.nix
+       jnoortheen.nix-ide
+       arcticicestudio.nord-visual-studio-code
++      
+     ];
+ 
+     userSettings = {
+diff --git a/home-manager/zig.nix b/home-manager/zig.nix
+new file mode 100644
+index 0000000..ad89117
+--- /dev/null
++++ b/home-manager/zig.nix
+@@ -0,0 +1,11 @@
++{ inputs
++,pkgs
++, ... 
++}: let
++unstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
++in
++{
++  home.packages = with pkgs; [
++    unstable.zig
++  ];
++}
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index dd28ede..f2f9048 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -12,6 +12,7 @@
+     ../common/screen.nix
+     ../common/nvidia/default.nix
+     ../common/podman/default.nix
++#    ./unstable.nix
+   ];
+ 
+   nixpkgs.config.allowUnfree = true;
+@@ -56,6 +57,7 @@
+     gnome3.gnome-session
+     zsh
+     cudatoolkit
++    blender
+   ];
+ 
+   programs.steam = {
+========================================
+Commit: 2347200dfbe658b0d77a0a52b773ab19f1f93551
+----------------------------------------
+diff --git a/home-manager/blender-bin.nix b/home-manager/blender-bin.nix
+index 98073c8..06d0581 100644
+--- a/home-manager/blender-bin.nix
++++ b/home-manager/blender-bin.nix
+@@ -6,7 +6,6 @@
+   outputs = { self, nixpkgs }:
+ 
+     let
+-
+       pkgs = import nixpkgs {
+         system = "x86_64-linux";
+         overlays = [ self.overlays.default ];
+@@ -65,151 +64,6 @@
+     in {
+ 
+       overlays.default = final: prev: {
+-
+-        blender_2_79 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.79-20190523-054dbb833e15";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://builder.blender.org/download/blender-2.79-054dbb833e15-linux-glibc224-x86_64.tar.bz2";
+-            hash = "sha256-/qbRx4KKiJBka84M4iXB8z3PKzqBIuWG5Zihyf//QTU=";
+-          };
+-        };
+-
+-        blender_2_81 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.81a";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.81/blender-2.81a-linux-glibc217-x86_64.tar.bz2";
+-            hash = "sha256-CNcYUF0esdJh77qWsHhyIKdtNXzluUrKEI/J4MM51sY=";
+-          };
+-        };
+-
+-        blender_2_82 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.82a";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.82/blender-2.82a-linux64.tar.xz";
+-            hash = "sha256-+0ACWBIlJcUaWJcZkZfnQBBJT3HyshIsTdEiMk5u3r4=";
+-          };
+-        };
+-
+-        blender_2_83 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.83.20";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.83/blender-2.83.20-linux-x64.tar.xz";
+-            hash = "sha256-KuPyb39J+TUrcPUFuPNj0MtRshS4ZmHZTuTpxYjEFPg=";
+-          };
+-        };
+-
+-        blender_2_90 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.90.1";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-linux64.tar.xz";
+-            hash = "sha256-BUZoxGo+VpIfKDcJ9Ro194YHhhgwAc8uqb4ySdE6xmc=";
+-          };
+-        };
+-
+-        blender_2_91 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.91.2";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.91/blender-2.91.2-linux64.tar.xz";
+-            hash = "sha256-jx4eiFJ1DhA4V5M2x0YcGlSS2pc84Yjh5crpmy95aiM=";
+-          };
+-        };
+-
+-        blender_2_92 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.92.0";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.92/blender-2.92.0-linux64.tar.xz";
+-            hash = "sha256-LNF61unWwkGsFLhK1ucrUHruyXnaPZJrGhRuiODrPrQ=";
+-          };
+-        };
+-
+-        blender_2_93 = mkBlender {
+-          pname = "blender-bin";
+-          version = "2.93.18";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.93/blender-2.93.18-linux-x64.tar.xz";
+-            hash = "sha256-+H9z8n0unluHbqpXr0SQIGf0wzHR4c30ACM6ZNocNns=";
+-          };
+-        };
+-
+-        blender_3_0 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.0.1";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.0/blender-3.0.1-linux-x64.tar.xz";
+-            hash = "sha256-TxeqPRDtbhPmp1R58aUG9YmYuMAHgSoIhtklTJU+KuU=";
+-          };
+-        };
+-
+-        blender_3_1 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.1.2";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.1/blender-3.1.2-linux-x64.tar.xz";
+-            hash = "sha256-wdNFslxvg3CLJoHTVNcKPmAjwEu3PMeUM2bAwZ5UKVg=";
+-          };
+-        };
+-
+-        blender_3_2 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.2.2";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.2/blender-3.2.2-linux-x64.tar.xz";
+-            hash = "sha256-FyZWAVfZDPKqrrbSXe0Xg9Zr/wQ4FM2VuQ/Arx2eAYs=";
+-          };
+-        };
+-
+-        blender_3_3 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.3.18";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.3/blender-3.3.18-linux-x64.tar.xz";
+-            hash = "sha256-kCgwtWjKULP3Ce/QFM7LxkSFCJzr2Nya2jIjYx43xPc=";
+-          };
+-        };
+-
+-        blender_3_4 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.4.1";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.4/blender-3.4.1-linux-x64.tar.xz";
+-            hash = "sha256-FJf4P5Ppu73nRUIseV7RD+FfkvViK0Qhdo8Un753aYE=";
+-          };
+-        };
+-
+-        blender_3_5 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.5.1";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.5/blender-3.5.1-linux-x64.tar.xz";
+-            hash = "sha256-2Crn72DqsgsVSCbE8htyrgAerJNWRs0plMXUpRNvfxw=";
+-          };
+-        };
+-
+-        blender_3_6 = mkBlender {
+-          pname = "blender-bin";
+-          version = "3.6.11";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.6/blender-3.6.11-linux-x64.tar.xz";
+-            hash = "sha256-3Hoh2DCRDqUsk55Je1QzBvEUfbYAU0J7FKmdxJLMtSA=";
+-          };
+-        };
+-
+-        blender_4_0 = mkBlender {
+-          pname = "blender-bin";
+-          version = "4.0.2";
+-          src = import <nix/fetchurl.nix> {
+-            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender4.0/blender-4.0.2-linux-x64.tar.xz";
+-            hash = "sha256-VYOlWIc22ohYxSLvF//11zvlnEem/pGtKcbzJj4iCGo=";
+-          };
+-        };
+-
+         blender_4_1 = mkBlender {
+           pname = "blender-bin";
+           version = "4.1.1";
+@@ -224,43 +78,12 @@
+ 
+       packages.x86_64-linux = rec {
+         inherit (pkgs)
+-          blender_2_79
+-          blender_2_81
+-          blender_2_82
+-          blender_2_83
+-          blender_2_90
+-          blender_2_91
+-          blender_2_92
+-          blender_2_93
+-          blender_3_0
+-          blender_3_1
+-          blender_3_2
+-          blender_3_3
+-          blender_3_4
+-          blender_3_5
+-          blender_3_6
+-          blender_4_0
++
+           blender_4_1;
+         default = blender_4_1;
+       };
+ 
+       checks.x86_64-linux = {
+-        blender_2_79 = mkTest { blender = self.packages.x86_64-linux.blender_2_79; };
+-        blender_2_81 = mkTest { blender = self.packages.x86_64-linux.blender_2_81; };
+-        blender_2_82 = mkTest { blender = self.packages.x86_64-linux.blender_2_82; };
+-        blender_2_83 = mkTest { blender = self.packages.x86_64-linux.blender_2_83; };
+-        blender_2_90 = mkTest { blender = self.packages.x86_64-linux.blender_2_90; };
+-        blender_2_91 = mkTest { blender = self.packages.x86_64-linux.blender_2_91; };
+-        blender_2_92 = mkTest { blender = self.packages.x86_64-linux.blender_2_92; };
+-        blender_2_93 = mkTest { blender = self.packages.x86_64-linux.blender_2_93; };
+-        blender_3_0  = mkTest { blender = self.packages.x86_64-linux.blender_3_0; };
+-        blender_3_1  = mkTest { blender = self.packages.x86_64-linux.blender_3_1; };
+-        blender_3_2  = mkTest { blender = self.packages.x86_64-linux.blender_3_2; };
+-        blender_3_3  = mkTest { blender = self.packages.x86_64-linux.blender_3_3; };
+-        blender_3_4  = mkTest { blender = self.packages.x86_64-linux.blender_3_4; };
+-        blender_3_5  = mkTest { blender = self.packages.x86_64-linux.blender_3_5; };
+-        blender_3_6  = mkTest { blender = self.packages.x86_64-linux.blender_3_6; };
+-        blender_4_0  = mkTest { blender = self.packages.x86_64-linux.blender_4_0; };
+         blender_4_1  = mkTest { blender = self.packages.x86_64-linux.blender_4_1; };
+       };
+ 
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index ada28a7..9f93f3d 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -1,4 +1,4 @@
+-# This replaces ~/.config/nixpkgs/home.nix)
++# ~/.config/nixpkgs/home.nix
+ { inputs
+ , lib
+ , config
+@@ -16,7 +16,7 @@
+ 
+   nixpkgs = {
+     overlays = [
+-      (import ./blender.nix).overlays.default
++      (import ./blender-bin.nix).overlays.default
+     ];
+ 
+     config = {
+@@ -26,6 +26,7 @@
+         "steam"
+         "steam-original"
+         "steam-run"
++        "blender-bin"  # Add blender-bin to the unfree predicate list
+       ];
+     };
+   };
+@@ -48,6 +49,7 @@
+       rclone
+       lilipod
+       distrobox
++      blender-bin  # Add blender-bin to the list of installed packages
+     ];
+   };
+ 
+========================================
+Commit: 6085c520f4d2d571dae485295ada0b4983a0848b
+----------------------------------------
+diff --git a/home-manager/blender.nix b/home-manager/blender-bin.nix
+similarity index 100%
+rename from home-manager/blender.nix
+rename to home-manager/blender-bin.nix
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 36b0ea0..ada28a7 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -48,9 +48,6 @@
+       rclone
+       lilipod
+       distrobox
+-
+-      # Add Blender packages here
+-      (import ./blender.nix).packages.x86_64-linux.blender_4_1
+     ];
+   };
+ 
+========================================
+Commit: 32894ee302266f6d1dfed8b8e85836456bfc45fc
+----------------------------------------
+diff --git a/home-manager/blender.nix b/home-manager/blender.nix
+new file mode 100644
+index 0000000..98073c8
+--- /dev/null
++++ b/home-manager/blender.nix
+@@ -0,0 +1,268 @@
++{
++  description = "A free and open source 3D creation suite (upstream binaries)";
++
++  inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
++
++  outputs = { self, nixpkgs }:
++
++    let
++
++      pkgs = import nixpkgs {
++        system = "x86_64-linux";
++        overlays = [ self.overlays.default ];
++      };
++
++      mkBlender = { pname, version, src }:
++        with pkgs;
++
++        let
++          libs =
++            [ wayland libdecor xorg.libX11 xorg.libXi xorg.libXxf86vm xorg.libXfixes xorg.libXrender libxkbcommon libGLU libglvnd numactl SDL2 libdrm ocl-icd stdenv.cc.cc.lib openal ]
++            ++ lib.optionals (lib.versionAtLeast version "3.5") [ xorg.libSM xorg.libICE zlib ];
++        in
++
++        stdenv.mkDerivation rec {
++          inherit pname version src;
++
++          buildInputs = [ makeWrapper ];
++
++          preUnpack =
++            ''
++              mkdir -p $out/libexec
++              cd $out/libexec
++            '';
++
++          installPhase =
++            ''
++              cd $out/libexec
++              mv blender-* blender
++
++              mkdir -p $out/share/applications
++              mv ./blender/blender.desktop $out/share/applications/blender.desktop
++
++              mkdir $out/bin
++
++              makeWrapper $out/libexec/blender/blender $out/bin/blender \
++                --prefix LD_LIBRARY_PATH : /run/opengl-driver/lib:${lib.makeLibraryPath libs}
++
++              patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
++                blender/blender
++
++              patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)"  \
++                $out/libexec/blender/*/python/bin/python3*
++            '';
++
++          meta.mainProgram = "blender";
++        };
++
++      mkTest = { blender }:
++        pkgs.runCommand "blender-test" { buildInputs = [ blender ]; }
++          ''
++            blender --version
++            touch $out
++          '';
++
++    in {
++
++      overlays.default = final: prev: {
++
++        blender_2_79 = mkBlender {
++          pname = "blender-bin";
++          version = "2.79-20190523-054dbb833e15";
++          src = import <nix/fetchurl.nix> {
++            url = "https://builder.blender.org/download/blender-2.79-054dbb833e15-linux-glibc224-x86_64.tar.bz2";
++            hash = "sha256-/qbRx4KKiJBka84M4iXB8z3PKzqBIuWG5Zihyf//QTU=";
++          };
++        };
++
++        blender_2_81 = mkBlender {
++          pname = "blender-bin";
++          version = "2.81a";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.81/blender-2.81a-linux-glibc217-x86_64.tar.bz2";
++            hash = "sha256-CNcYUF0esdJh77qWsHhyIKdtNXzluUrKEI/J4MM51sY=";
++          };
++        };
++
++        blender_2_82 = mkBlender {
++          pname = "blender-bin";
++          version = "2.82a";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.82/blender-2.82a-linux64.tar.xz";
++            hash = "sha256-+0ACWBIlJcUaWJcZkZfnQBBJT3HyshIsTdEiMk5u3r4=";
++          };
++        };
++
++        blender_2_83 = mkBlender {
++          pname = "blender-bin";
++          version = "2.83.20";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.83/blender-2.83.20-linux-x64.tar.xz";
++            hash = "sha256-KuPyb39J+TUrcPUFuPNj0MtRshS4ZmHZTuTpxYjEFPg=";
++          };
++        };
++
++        blender_2_90 = mkBlender {
++          pname = "blender-bin";
++          version = "2.90.1";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-linux64.tar.xz";
++            hash = "sha256-BUZoxGo+VpIfKDcJ9Ro194YHhhgwAc8uqb4ySdE6xmc=";
++          };
++        };
++
++        blender_2_91 = mkBlender {
++          pname = "blender-bin";
++          version = "2.91.2";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.91/blender-2.91.2-linux64.tar.xz";
++            hash = "sha256-jx4eiFJ1DhA4V5M2x0YcGlSS2pc84Yjh5crpmy95aiM=";
++          };
++        };
++
++        blender_2_92 = mkBlender {
++          pname = "blender-bin";
++          version = "2.92.0";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.92/blender-2.92.0-linux64.tar.xz";
++            hash = "sha256-LNF61unWwkGsFLhK1ucrUHruyXnaPZJrGhRuiODrPrQ=";
++          };
++        };
++
++        blender_2_93 = mkBlender {
++          pname = "blender-bin";
++          version = "2.93.18";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.93/blender-2.93.18-linux-x64.tar.xz";
++            hash = "sha256-+H9z8n0unluHbqpXr0SQIGf0wzHR4c30ACM6ZNocNns=";
++          };
++        };
++
++        blender_3_0 = mkBlender {
++          pname = "blender-bin";
++          version = "3.0.1";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.0/blender-3.0.1-linux-x64.tar.xz";
++            hash = "sha256-TxeqPRDtbhPmp1R58aUG9YmYuMAHgSoIhtklTJU+KuU=";
++          };
++        };
++
++        blender_3_1 = mkBlender {
++          pname = "blender-bin";
++          version = "3.1.2";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.1/blender-3.1.2-linux-x64.tar.xz";
++            hash = "sha256-wdNFslxvg3CLJoHTVNcKPmAjwEu3PMeUM2bAwZ5UKVg=";
++          };
++        };
++
++        blender_3_2 = mkBlender {
++          pname = "blender-bin";
++          version = "3.2.2";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.2/blender-3.2.2-linux-x64.tar.xz";
++            hash = "sha256-FyZWAVfZDPKqrrbSXe0Xg9Zr/wQ4FM2VuQ/Arx2eAYs=";
++          };
++        };
++
++        blender_3_3 = mkBlender {
++          pname = "blender-bin";
++          version = "3.3.18";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.3/blender-3.3.18-linux-x64.tar.xz";
++            hash = "sha256-kCgwtWjKULP3Ce/QFM7LxkSFCJzr2Nya2jIjYx43xPc=";
++          };
++        };
++
++        blender_3_4 = mkBlender {
++          pname = "blender-bin";
++          version = "3.4.1";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.4/blender-3.4.1-linux-x64.tar.xz";
++            hash = "sha256-FJf4P5Ppu73nRUIseV7RD+FfkvViK0Qhdo8Un753aYE=";
++          };
++        };
++
++        blender_3_5 = mkBlender {
++          pname = "blender-bin";
++          version = "3.5.1";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.5/blender-3.5.1-linux-x64.tar.xz";
++            hash = "sha256-2Crn72DqsgsVSCbE8htyrgAerJNWRs0plMXUpRNvfxw=";
++          };
++        };
++
++        blender_3_6 = mkBlender {
++          pname = "blender-bin";
++          version = "3.6.11";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender3.6/blender-3.6.11-linux-x64.tar.xz";
++            hash = "sha256-3Hoh2DCRDqUsk55Je1QzBvEUfbYAU0J7FKmdxJLMtSA=";
++          };
++        };
++
++        blender_4_0 = mkBlender {
++          pname = "blender-bin";
++          version = "4.0.2";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender4.0/blender-4.0.2-linux-x64.tar.xz";
++            hash = "sha256-VYOlWIc22ohYxSLvF//11zvlnEem/pGtKcbzJj4iCGo=";
++          };
++        };
++
++        blender_4_1 = mkBlender {
++          pname = "blender-bin";
++          version = "4.1.1";
++          src = import <nix/fetchurl.nix> {
++            url = "https://ftp.nluug.nl/pub/graphics/blender/release/Blender4.1/blender-4.1.1-linux-x64.tar.xz";
++            hash = "sha256-qy6j/pkWAaXmvSzaeG7KqRnAs54FUOWZeLXUAnDCYNM=";
++          };
++        };
++      };
++
++      lib.mkBlender = mkBlender;
++
++      packages.x86_64-linux = rec {
++        inherit (pkgs)
++          blender_2_79
++          blender_2_81
++          blender_2_82
++          blender_2_83
++          blender_2_90
++          blender_2_91
++          blender_2_92
++          blender_2_93
++          blender_3_0
++          blender_3_1
++          blender_3_2
++          blender_3_3
++          blender_3_4
++          blender_3_5
++          blender_3_6
++          blender_4_0
++          blender_4_1;
++        default = blender_4_1;
++      };
++
++      checks.x86_64-linux = {
++        blender_2_79 = mkTest { blender = self.packages.x86_64-linux.blender_2_79; };
++        blender_2_81 = mkTest { blender = self.packages.x86_64-linux.blender_2_81; };
++        blender_2_82 = mkTest { blender = self.packages.x86_64-linux.blender_2_82; };
++        blender_2_83 = mkTest { blender = self.packages.x86_64-linux.blender_2_83; };
++        blender_2_90 = mkTest { blender = self.packages.x86_64-linux.blender_2_90; };
++        blender_2_91 = mkTest { blender = self.packages.x86_64-linux.blender_2_91; };
++        blender_2_92 = mkTest { blender = self.packages.x86_64-linux.blender_2_92; };
++        blender_2_93 = mkTest { blender = self.packages.x86_64-linux.blender_2_93; };
++        blender_3_0  = mkTest { blender = self.packages.x86_64-linux.blender_3_0; };
++        blender_3_1  = mkTest { blender = self.packages.x86_64-linux.blender_3_1; };
++        blender_3_2  = mkTest { blender = self.packages.x86_64-linux.blender_3_2; };
++        blender_3_3  = mkTest { blender = self.packages.x86_64-linux.blender_3_3; };
++        blender_3_4  = mkTest { blender = self.packages.x86_64-linux.blender_3_4; };
++        blender_3_5  = mkTest { blender = self.packages.x86_64-linux.blender_3_5; };
++        blender_3_6  = mkTest { blender = self.packages.x86_64-linux.blender_3_6; };
++        blender_4_0  = mkTest { blender = self.packages.x86_64-linux.blender_4_0; };
++        blender_4_1  = mkTest { blender = self.packages.x86_64-linux.blender_4_1; };
++      };
++
++    };
++}
+\ No newline at end of file
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 06f1dc6..36b0ea0 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -13,24 +13,10 @@
+     ./zsh.nix
+     ./kitty.nix
+   ];
+-  # programs.steam = {
+-  #   enable = true;
+-  #   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+-  #   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+-  #   localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+-  # };
+-  nixpkgs = {
+ 
++  nixpkgs = {
+     overlays = [
+-      # If you want to use overlays exported from other flakes:
+-      # neovim-nightly-overlay.overlays.default
+-
+-      # Or define it inline, for example:
+-      # (final: prev: {
+-      #   hi = final.hello.overrideAttrs (oldAttrs: {
+-      #     patches = [ ./change-hello-to-hi.patch ];
+-      #   });
+-      # })
++      (import ./blender.nix).overlays.default
+     ];
+ 
+     config = {
+@@ -57,12 +43,14 @@
+       obsidian
+       whatsapp-for-linux
+       inkscape
+-      blender
+       fira-code
+       nixpkgs-fmt
+       rclone
+       lilipod
+       distrobox
++
++      # Add Blender packages here
++      (import ./blender.nix).packages.x86_64-linux.blender_4_1
+     ];
+   };
+ 
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index c88e8e7..dd28ede 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -15,7 +15,7 @@
+   ];
+ 
+   nixpkgs.config.allowUnfree = true;
+-  nixpkgs.config.cudaSupport = true;
++
+   boot.loader.systemd-boot.enable = true;
+   boot.loader.efi.canTouchEfiVariables = true;
+ 
+========================================
+Commit: ff73996a8160891b758e5e7bafb3b1a32ae4d4dc
+----------------------------------------
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index f4cc53a..c88e8e7 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -15,6 +15,7 @@
+   ];
+ 
+   nixpkgs.config.allowUnfree = true;
++  nixpkgs.config.cudaSupport = true;
+   boot.loader.systemd-boot.enable = true;
+   boot.loader.efi.canTouchEfiVariables = true;
+ 
+@@ -39,7 +40,6 @@
+     LC_TIME = "pt_BR.UTF-8";
+   };
+ 
+-
+   environment.systemPackages = with pkgs; [
+     wget
+     python3
+@@ -55,6 +55,7 @@
+     gnome3.gnome-tweaks
+     gnome3.gnome-session
+     zsh
++    cudatoolkit
+   ];
+ 
+   programs.steam = {
+@@ -70,7 +71,9 @@
+   services.xserver.desktopManager.gnome.enable = true;
+   services.gnome.gnome-remote-desktop.enable = true;
+   services.displayManager.autoLogin.enable = false;
+-  # services.displayManager.autoLogin.user = "thiago";
++  services.displayManager.autoLogin.user = "thiago";
++  programs.dconf.enable = true;
++
+ 
+   services.xrdp.enable = true;
+   services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
+@@ -88,9 +91,6 @@
+   systemd.services."getty@tty1".enable = false;
+   systemd.services."autovt@tty1".enable = false;
+ 
+-
+-
+-
+   # Enable CUPS to print documents.
+   services.printing.enable = true;
+ 
+@@ -103,11 +103,6 @@
+     pulse.enable = true;
+   };
+ 
+-
+-
+-
+-
+-
+   virtualisation.spiceUSBRedirection.enable = true;
+   virtualisation.libvirtd = {
+     enable = true;
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index c06f886..022ff26 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -11,7 +11,7 @@
+     enable = true;
+     videoDrivers = [ "nvidia" ];
+   };
+-  cudaSupport = true;
++  nixpkgs.config.cudaSupport = true;
+   environment.systemPackages = with pkgs; [
+     mesa
+     glxinfo
+========================================
+Commit: 023facdba9e6a754f99a99f42403446bc899068b
+----------------------------------------
+diff --git a/home-manager/gnome.nix b/home-manager/gnome.nix
+index 28b33a1..3bb98a5 100644
+--- a/home-manager/gnome.nix
++++ b/home-manager/gnome.nix
+@@ -1,6 +1,37 @@
+-{ inputs
+-, lib
+-, config
+-, pkgs
+-, ...
+-}: { }
++{ pkgs, ... }:
++
++{
++
++  dconf.settings = {
++
++    "org/gnome/shell" = {
++      disable-user-extensions = false;
++      favorite-apps = [
++        "org.gnome.Settings.desktop"
++        "org.gnome.Nautilus.desktop"
++        "firefox.desktop"
++        "org.gnome.Calendar.desktop"
++        "code.desktop"
++        "kitty.desktop"
++      ];
++
++      enabled-extensions = [
++        "user-theme@gnome-shell-extensions.gcampax.github.com"
++        "trayIconsReloaded@selfmade.pl"
++        "Vitals@CoreCoding.com"
++        "dash-to-panel@jderose9.github.com"
++        "sound-output-device-chooser@kgshank.net"
++        "space-bar@luchrioh"
++      ];
++    };
++  };
++
++  home.packages = with pkgs; [
++    gnomeExtensions.user-themes
++    gnomeExtensions.tray-icons-reloaded
++    gnomeExtensions.vitals
++    gnomeExtensions.dash-to-panel
++    gnomeExtensions.sound-output-device-chooser
++    gnomeExtensions.space-bar
++  ];
++}
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index 5e7c5e2..c06f886 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -11,7 +11,7 @@
+     enable = true;
+     videoDrivers = [ "nvidia" ];
+   };
+-
++  cudaSupport = true;
+   environment.systemPackages = with pkgs; [
+     mesa
+     glxinfo
+@@ -25,4 +25,6 @@
+     nvidiaSettings = true;
+     package = config.boot.kernelPackages.nvidiaPackages.stable;
+   };
++
++  
+ }
+========================================
+Commit: 7922e38150aa220f1ebe9a2e010248f2b9c0ef23
+----------------------------------------
+diff --git a/home-manager/kitty.nix b/home-manager/kitty.nix
+index 02eff47..83d37dd 100644
+--- a/home-manager/kitty.nix
++++ b/home-manager/kitty.nix
+@@ -4,18 +4,18 @@
+ , pkgs
+ , ...
+ }: {
+-    
+-    programs.kitty = {
+-      enable = true;
+-      theme = "Nord";
+-      settings = {
+-        
+-        hide_window_decorations = "titlebar-only";
+-        font_size = 16;
+-        inactive_text_alpha = "0.6";
+-        macos_thicken_font = "0.75";
+-        background_blur = 1;
+-      };
++
++  programs.kitty = {
++    enable = true;
++    theme = "Nord";
++    settings = {
++
++      hide_window_decorations = "titlebar-only";
++      font_size = 16;
++      inactive_text_alpha = "0.6";
++      macos_thicken_font = "0.75";
++      background_blur = 1;
+     };
++  };
+ }
+ 
+========================================
+Commit: 0ba6b1becb9029ae76da150584a3a8a84f39e269
+----------------------------------------
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+index 4fba50c..401c6e9 100644
+--- a/.vscode/settings.json
++++ b/.vscode/settings.json
+@@ -1,17 +1,24 @@
+ {
+-    "nix.enableLanguageServer": true, // Enable LSP.
+-    "nix.serverPath": "nil", // The path to the LSP server executable.
+-  
+-    "nix.serverSettings": {
+-      // settings for 'nil' LSP
+-      "nil": {
+-        "diagnostics": {
+-          "ignored": ["unused_binding", "unused_with"]
+-        },
+-        "formatting": {
+-          "command": ["nixpkgs-fmt"]
+-        }
++  "gitlens.telemetry.enabled": false,
++  "nix.enableLanguageServer": true,
++  "nix.serverPath": "nil",
++  "nix.serverSettings": {
++    "nil": {
++      "diagnostics": {
++        "ignored": [
++          "unused_binding",
++          "unused_with"
++        ]
++      },
++      "formatting": {
++        "command": [
++          "nixpkgs-fmt"
++        ]
+       }
+-    },
+-    "nix.formatterPath": "nixpkgs-fmt"   
++    }
++  },
++
++  "terminal.integrated.fontFamily": "Hack",
++
++
+ }
+\ No newline at end of file
+diff --git a/home-manager/kitty.nix b/home-manager/kitty.nix
+index fe95a52..02eff47 100644
+--- a/home-manager/kitty.nix
++++ b/home-manager/kitty.nix
+@@ -11,9 +11,9 @@
+       settings = {
+         
+         hide_window_decorations = "titlebar-only";
+-        font_size = 16.0;
+-        inactive_text_alpha = 0.6;
+-        macos_thicken_font = 0.75;
++        font_size = 16;
++        inactive_text_alpha = "0.6";
++        macos_thicken_font = "0.75";
+         background_blur = 1;
+       };
+     };
+========================================
+Commit: 1f3ceb15b646a7fdce9dbc9616fbe80a8310193c
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 6d2165f..06f1dc6 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -11,6 +11,7 @@
+     ./gnome.nix
+     ./vscode.nix
+     ./zsh.nix
++    ./kitty.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+@@ -58,12 +59,10 @@
+       inkscape
+       blender
+       fira-code
+-      kitty
+       nixpkgs-fmt
+       rclone
+       lilipod
+       distrobox
+-
+     ];
+   };
+ 
+@@ -83,24 +82,6 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-    # vscode = {
+-    #   enable = true;
+-    #   package = pkgs.vscode;
+-    #   extensions = with pkgs.vscode-extensions; [
+-    #     eamodio.gitlens
+-    #     bbenoist.nix
+-    #     jnoortheen.nix-ide
+-    #     arcticicestudio.nord-visual-studio-code
+-    #   ];
+-
+-    #   userSettings = {
+-    #     "user.colorTheme" = "Nord";
+-    #     "workbench.colorTheme" = "Nord";
+-    #     "terminal.integrated.fontFamily" = "Hack";
+-    #     "nix.enableLanguageServer" = true;
+-    #   };
+-    # };
+-
+     home-manager.enable = true;
+   };
+ 
+diff --git a/home-manager/kitty.nix b/home-manager/kitty.nix
+new file mode 100644
+index 0000000..fe95a52
+--- /dev/null
++++ b/home-manager/kitty.nix
+@@ -0,0 +1,21 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++    
++    programs.kitty = {
++      enable = true;
++      theme = "Nord";
++      settings = {
++        
++        hide_window_decorations = "titlebar-only";
++        font_size = 16.0;
++        inactive_text_alpha = 0.6;
++        macos_thicken_font = 0.75;
++        background_blur = 1;
++      };
++    };
++}
++
+========================================
+Commit: 06b598bdf511851b5f008c2186ff2e4c7c5a9120
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index 1c8bc52..570b44d 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -34,7 +34,7 @@
+         };
+         Nixstation = nixpkgs.lib.nixosSystem {
+           specialArgs = { inherit inputs outputs; };
+-          modules = [ ./hosts/Nixstation];
++          modules = [ ./hosts/Nixstation ];
+         };
+       };
+ 
+@@ -45,14 +45,14 @@
+           extraSpecialArgs = { inherit inputs outputs; };
+ 
+           modules = [ ./home-manager/home.nix ];
+-          };
++        };
+         "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
+           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+           extraSpecialArgs = { inherit inputs outputs; };
+ 
+           modules = [ ./home-manager/home.nix ];
+-          };
+-        
++        };
++
+       };
+     };
+ }
+diff --git a/home-manager/gnome.nix b/home-manager/gnome.nix
+index fbb5efa..28b33a1 100644
+--- a/home-manager/gnome.nix
++++ b/home-manager/gnome.nix
+@@ -3,6 +3,4 @@
+ , config
+ , pkgs
+ , ...
+-}: {
+-    
+-}
+\ No newline at end of file
++}: { }
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index b6bcb62..6d2165f 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -31,7 +31,7 @@
+       #   });
+       # })
+     ];
+-    
++
+     config = {
+       allowUnfree = true;
+       # Workaround for https://github.com/nix-community/home-manager/issues/2942
+@@ -63,7 +63,7 @@
+       rclone
+       lilipod
+       distrobox
+-      
++
+     ];
+   };
+ 
+@@ -101,9 +101,9 @@
+     #   };
+     # };
+ 
+-   home-manager.enable = true;
+-   };
++    home-manager.enable = true;
++  };
+ 
+-  systemd.user.startServices = "sd-switch";   # Nicely reload system units when changing configs
++  systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
+   home.stateVersion = "24.05";
+ }
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index 6434b2f..b55e417 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -1,38 +1,38 @@
+-{ 
+-pkgs
++{ pkgs
+ , ...
+ }:
+ {
+-    programs.vscode = {
+-      enable = true;
+-      package = pkgs.vscode;
+-      extensions = with pkgs.vscode-extensions; [
+-        eamodio.gitlens
+-        bbenoist.nix
+-        jnoortheen.nix-ide
+-        arcticicestudio.nord-visual-studio-code
+-      ];
++  programs.vscode = {
++    enable = true;
++    package = pkgs.vscode;
++    extensions = with pkgs.vscode-extensions; [
++      eamodio.gitlens
++      bbenoist.nix
++      jnoortheen.nix-ide
++      arcticicestudio.nord-visual-studio-code
++    ];
+ 
+-      userSettings = {
+-        "extensions.autoCheckUpdates" = false;
+-        "update.mode" = "none";
+-        "telemetry.telemetryLevel" = "off";
+-        "gitlens.telemetry.enabled" = false;
+-        "user.colorTheme" = "Nord";
+-        "workbench.colorTheme" = "Nord";
+-        "terminal.integrated.fontFamily" = "Hack";
+-        "nix.enableLanguageServer" = true;
+-        "nix.serverPath" = "nil";        
+-        "nix.serverSettings" = {
+-          "nil" = {
+-            "diagnostics"= {
+-              "ignored"= ["unused_binding" "unused_with"];
+-            };
+-            "formatting"= {
+-              "command"= ["nixpkgs-fmt"];
+-            };
++    userSettings = {
++      "extensions.autoCheckUpdates" = false;
++      "update.mode" = "none";
++      "telemetry.telemetryLevel" = "off";
++      "gitlens.telemetry.enabled" = false;
++      "user.colorTheme" = "Nord";
++      "workbench.colorTheme" = "Nord";
++      "terminal.integrated.fontFamily" = "Hack";
++      "nix.formatterPath" = "nixpkgs-fmt";
++      "nix.enableLanguageServer" = true;
++      "nix.serverPath" = "nil";
++      "nix.serverSettings" = {
++        "nil" = {
++          "diagnostics" = {
++            "ignored" = [ "unused_binding" "unused_with" ];
++          };
++          "formatting" = {
++            "command" = [ "nixpkgs-fmt" ];
+           };
+         };
+       };
+-    };   
++    };
++  };
+ }
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+index 1587609..0eea40b 100644
+--- a/home-manager/zsh.nix
++++ b/home-manager/zsh.nix
+@@ -5,18 +5,18 @@
+ , ...
+ }: {
+ 
+- programs.zsh = {
++  programs.zsh = {
+     enable = true;
+     autosuggestion.enable = true;
+     syntaxHighlighting.enable = true;
+     oh-my-zsh = {
+-        enable = true;
+-        plugins = [
+-            "git"
+-            "history"
+-            "deno"
+-        ];
++      enable = true;
++      plugins = [
++        "git"
++        "history"
++        "deno"
++      ];
+     };
+-};
+-    
+-}
+\ No newline at end of file
++  };
++
++}
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 29edff2..f4cc53a 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -20,7 +20,8 @@
+ 
+   time.timeZone = "America/Sao_Paulo";
+ 
+-  services.xserver.xkb = {  # Configure keymap in X11
++  services.xserver.xkb = {
++    # Configure keymap in X11
+     layout = "us";
+     variant = "alt-intl";
+   };
+@@ -37,8 +38,8 @@
+     LC_TELEPHONE = "pt_BR.UTF-8";
+     LC_TIME = "pt_BR.UTF-8";
+   };
+-  
+-  
++
++
+   environment.systemPackages = with pkgs; [
+     wget
+     python3
+@@ -61,20 +62,20 @@
+     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+     localNetworkGameTransfers.openFirewall = true;
+-     # Open ports in the firewall for Steam Local Network Game Transfers
++    # Open ports in the firewall for Steam Local Network Game Transfers
+   };
+ 
+   services.xserver.enable = true;
+   services.xserver.displayManager.gdm.enable = true;
+   services.xserver.desktopManager.gnome.enable = true;
+-  services.gnome.gnome-remote-desktop.enable = true; 
++  services.gnome.gnome-remote-desktop.enable = true;
+   services.displayManager.autoLogin.enable = false;
+- # services.displayManager.autoLogin.user = "thiago";
++  # services.displayManager.autoLogin.user = "thiago";
+ 
+   services.xrdp.enable = true;
+   services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
+   services.xrdp.openFirewall = true;
+-  
++
+   # Open ports in the firewall.
+   networking.firewall = {
+     enable = true;
+@@ -106,7 +107,7 @@
+ 
+ 
+ 
+-    
++
+   virtualisation.spiceUSBRedirection.enable = true;
+   virtualisation.libvirtd = {
+     enable = true;
+@@ -116,7 +117,7 @@
+   #   enable = true;
+   #   qemuOvmf = true;
+   # };
+-  
++
+   programs.virt-manager.enable = true;
+ 
+   system.stateVersion = "24.05"; # Did you read the comment?
+diff --git a/hosts/Nixstation/hardware-configuration.nix b/hosts/Nixstation/hardware-configuration.nix
+index 6072fd6..b694c2f 100644
+--- a/hosts/Nixstation/hardware-configuration.nix
++++ b/hosts/Nixstation/hardware-configuration.nix
+@@ -5,7 +5,8 @@
+ 
+ {
+   imports =
+-    [ (modulesPath + "/installer/scan/not-detected.nix")
++    [
++      (modulesPath + "/installer/scan/not-detected.nix")
+     ];
+ 
+   boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
+@@ -14,13 +15,15 @@
+   boot.extraModulePackages = [ ];
+ 
+   fileSystems."/" =
+-    { device = "/dev/disk/by-uuid/df74093a-637d-41a5-8c6a-2bf2dccc1506";
++    {
++      device = "/dev/disk/by-uuid/df74093a-637d-41a5-8c6a-2bf2dccc1506";
+       fsType = "btrfs";
+       options = [ "subvol=@" ];
+     };
+ 
+   fileSystems."/boot" =
+-    { device = "/dev/disk/by-uuid/E9BA-D1A3";
++    {
++      device = "/dev/disk/by-uuid/E9BA-D1A3";
+       fsType = "vfat";
+       options = [ "fmask=0022" "dmask=0022" ];
+     };
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+index ce3e3f0..27465e0 100644
+--- a/hosts/common/default.nix
++++ b/hosts/common/default.nix
+@@ -37,7 +37,7 @@
+     auto-optimise-store = true;
+   };
+ 
+-    environment.systemPackages = with pkgs; [
++  environment.systemPackages = with pkgs; [
+     wget
+     git
+     exfat
+@@ -51,7 +51,7 @@
+     libinput
+     file
+     zsh
+-    
++
+   ];
+ 
+ 
+diff --git a/hosts/common/network.nix b/hosts/common/network.nix
+index 74bb981..6422a93 100644
+--- a/hosts/common/network.nix
++++ b/hosts/common/network.nix
+@@ -1,8 +1,8 @@
+ { config, lib, pkgs, ... }:
+ {
+-    networking.hostName = "Nixstation";
+-    networking.networkmanager.enable = true;
+-    services.tailscale.enable = true;
+-    services.samba.enable = true;
+-    services.openssh.enable = true;
+-}
+\ No newline at end of file
++  networking.hostName = "Nixstation";
++  networking.networkmanager.enable = true;
++  services.tailscale.enable = true;
++  services.samba.enable = true;
++  services.openssh.enable = true;
++}
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index c66631b..5e7c5e2 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -9,7 +9,7 @@
+ 
+   services.xserver = {
+     enable = true;
+-    videoDrivers = ["nvidia"];
++    videoDrivers = [ "nvidia" ];
+   };
+ 
+   environment.systemPackages = with pkgs; [
+diff --git a/hosts/common/podman/default.nix b/hosts/common/podman/default.nix
+index bdb87f1..6dd8348 100644
+--- a/hosts/common/podman/default.nix
++++ b/hosts/common/podman/default.nix
+@@ -21,4 +21,4 @@
+     docker-compose # start group of containers for dev
+     #podman-compose # start group of containers for dev
+   ];
+-}
+\ No newline at end of file
++}
+diff --git a/hosts/common/screen.nix b/hosts/common/screen.nix
+index 7e7db92..c2b6e24 100644
+--- a/hosts/common/screen.nix
++++ b/hosts/common/screen.nix
+@@ -1,13 +1,13 @@
+ { config, lib, pkgs, ... }:
+ {
+-    # boot.kernelModules = ["i2c-dev"];
+-    # services.udev.extraRules = ''
+-    #     KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
+-    # '';
+-    # users.groups.i2c = {};
+-    hardware.i2c.enable = true;
+-    environment.systemPackages = with pkgs; [
+-        ddcutil
+-        ddcui
+-    ];
+-}
+\ No newline at end of file
++  # boot.kernelModules = ["i2c-dev"];
++  # services.udev.extraRules = ''
++  #     KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
++  # '';
++  # users.groups.i2c = {};
++  hardware.i2c.enable = true;
++  environment.systemPackages = with pkgs; [
++    ddcutil
++    ddcui
++  ];
++}
+diff --git a/hosts/common/users/thiago/default.nix b/hosts/common/users/thiago/default.nix
+index 98a1c1a..2127997 100644
+--- a/hosts/common/users/thiago/default.nix
++++ b/hosts/common/users/thiago/default.nix
+@@ -4,8 +4,8 @@ in
+ {
+   users.users.thiago = {
+     isNormalUser = true;
+-    extraGroups = ["networkmanager" "wheel" ]
+-    ++ ifTheyExist [
++    extraGroups = [ "networkmanager" "wheel" ]
++      ++ ifTheyExist [
+       "wireshark"
+       "i2c"
+       "docker"
+========================================
+Commit: c3564941c6daf876cfc64a574734a925b0de0433
+----------------------------------------
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index 518d4a3..6434b2f 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -14,6 +14,10 @@ pkgs
+       ];
+ 
+       userSettings = {
++        "extensions.autoCheckUpdates" = false;
++        "update.mode" = "none";
++        "telemetry.telemetryLevel" = "off";
++        "gitlens.telemetry.enabled" = false;
+         "user.colorTheme" = "Nord";
+         "workbench.colorTheme" = "Nord";
+         "terminal.integrated.fontFamily" = "Hack";
+========================================
+Commit: 4495b9f2737a37e51ada4cad433d581abb96e5a6
+----------------------------------------
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index d780734..518d4a3 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -18,6 +18,17 @@ pkgs
+         "workbench.colorTheme" = "Nord";
+         "terminal.integrated.fontFamily" = "Hack";
+         "nix.enableLanguageServer" = true;
++        "nix.serverPath" = "nil";        
++        "nix.serverSettings" = {
++          "nil" = {
++            "diagnostics"= {
++              "ignored"= ["unused_binding" "unused_with"];
++            };
++            "formatting"= {
++              "command"= ["nixpkgs-fmt"];
++            };
++          };
++        };
+       };
+     };   
+ }
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+index 627f09b..1587609 100644
+--- a/home-manager/zsh.nix
++++ b/home-manager/zsh.nix
+@@ -1,11 +1,10 @@
+ { inputs
+-# , lib
+-# , config
+-# , pkgs
++, lib
++, config
++
+ , ...
+ }: {
+-users.defaultUserShell = pkgs.zsh;
+-environment.shells = with pkgs; [ zsh ];
++
+  programs.zsh = {
+     enable = true;
+     autosuggestion.enable = true;
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 3864ddc..29edff2 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -53,6 +53,7 @@
+     libinput
+     gnome3.gnome-tweaks
+     gnome3.gnome-session
++    zsh
+   ];
+ 
+   programs.steam = {
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+index 014d318..ce3e3f0 100644
+--- a/hosts/common/default.nix
++++ b/hosts/common/default.nix
+@@ -12,6 +12,10 @@
+   nixpkgs.config.allowUnfree = true;
+   time.timeZone = "America/Sao_Paulo";
+ 
++
++  users.defaultUserShell = pkgs.zsh;
++  environment.shells = with pkgs; [ zsh ];
++  programs.zsh.enable = true;
+   # This will add each flake input as a registry to make nix3 commands consistent with your flake
+   nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+ 
+@@ -46,6 +50,7 @@
+     hwinfo
+     libinput
+     file
++    zsh
+     
+   ];
+ 
+========================================
+Commit: da7aabd067da3f061bd96adf2ee30b796c5447aa
+----------------------------------------
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+index 472da5b..627f09b 100644
+--- a/home-manager/zsh.nix
++++ b/home-manager/zsh.nix
+@@ -4,14 +4,14 @@
+ # , pkgs
+ , ...
+ }: {
+-    
++users.defaultUserShell = pkgs.zsh;
++environment.shells = with pkgs; [ zsh ];
+  programs.zsh = {
+     enable = true;
+     autosuggestion.enable = true;
+     syntaxHighlighting.enable = true;
+     oh-my-zsh = {
+         enable = true;
+-        theme = "nord";
+         plugins = [
+             "git"
+             "history"
+========================================
+Commit: fd6ac55c74df315f9865276eec6433244af73b25
+----------------------------------------
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+index aa3ed23..472da5b 100644
+--- a/home-manager/zsh.nix
++++ b/home-manager/zsh.nix
+@@ -1,13 +1,13 @@
+ { inputs
+-, lib
+-, config
+-, pkgs
++# , lib
++# , config
++# , pkgs
+ , ...
+ }: {
+     
+  programs.zsh = {
+     enable = true;
+-    programs.zsh.autosuggestion.enable = true;
++    autosuggestion.enable = true;
+     syntaxHighlighting.enable = true;
+     oh-my-zsh = {
+         enable = true;
+========================================
+Commit: 8f32b13fb238acb050cf308db4ad4c0219a2b682
+----------------------------------------
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+index fac58a4..aa3ed23 100644
+--- a/home-manager/zsh.nix
++++ b/home-manager/zsh.nix
+@@ -7,17 +7,14 @@
+     
+  programs.zsh = {
+     enable = true;
+-    enableAutosuggestions.enable = true;
++    programs.zsh.autosuggestion.enable = true;
+     syntaxHighlighting.enable = true;
+     oh-my-zsh = {
+         enable = true;
+         theme = "nord";
+         plugins = [
+             "git"
+-            "npm"
+             "history"
+-            "node"
+-            "rust"
+             "deno"
+         ];
+     };
+========================================
+Commit: 59de73028812e173c7d2e334e1e423abab8497ef
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 7ee6fd0..b6bcb62 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -10,6 +10,7 @@
+ 
+     ./gnome.nix
+     ./vscode.nix
++    ./zsh.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+diff --git a/home-manager/zsh.nix b/home-manager/zsh.nix
+new file mode 100644
+index 0000000..fac58a4
+--- /dev/null
++++ b/home-manager/zsh.nix
+@@ -0,0 +1,26 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++    
++ programs.zsh = {
++    enable = true;
++    enableAutosuggestions.enable = true;
++    syntaxHighlighting.enable = true;
++    oh-my-zsh = {
++        enable = true;
++        theme = "nord";
++        plugins = [
++            "git"
++            "npm"
++            "history"
++            "node"
++            "rust"
++            "deno"
++        ];
++    };
++};
++    
++}
+\ No newline at end of file
+========================================
+Commit: 97e22096d3d3efc0b8a5cc9504fae0311dfd4d70
+----------------------------------------
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index 0eee8b1..d780734 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -1,3 +1,7 @@
++{ 
++pkgs
++, ...
++}:
+ {
+     programs.vscode = {
+       enable = true;
+========================================
+Commit: 6469e2152f5b0b4d086fdfbbc8692c9f994d879e
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 8aff5df..7ee6fd0 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -82,26 +82,26 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-  #   vscode = {
+-  #     enable = true;
+-  #     package = pkgs.vscode;
+-  #     extensions = with pkgs.vscode-extensions; [
+-  #       eamodio.gitlens
+-  #       bbenoist.nix
+-  #       jnoortheen.nix-ide
+-  #       arcticicestudio.nord-visual-studio-code
+-  #     ];
++    # vscode = {
++    #   enable = true;
++    #   package = pkgs.vscode;
++    #   extensions = with pkgs.vscode-extensions; [
++    #     eamodio.gitlens
++    #     bbenoist.nix
++    #     jnoortheen.nix-ide
++    #     arcticicestudio.nord-visual-studio-code
++    #   ];
+ 
+-  #     userSettings = {
+-  #       "user.colorTheme" = "Nord";
+-  #       "workbench.colorTheme" = "Nord";
+-  #       "terminal.integrated.fontFamily" = "Hack";
+-  #       "nix.enableLanguageServer" = true;
+-  #     };
+-  #   };
++    #   userSettings = {
++    #     "user.colorTheme" = "Nord";
++    #     "workbench.colorTheme" = "Nord";
++    #     "terminal.integrated.fontFamily" = "Hack";
++    #     "nix.enableLanguageServer" = true;
++    #   };
++    # };
+ 
+-  #   home-manager.enable = true;
+-  # };
++   home-manager.enable = true;
++   };
+ 
+   systemd.user.startServices = "sd-switch";   # Nicely reload system units when changing configs
+   home.stateVersion = "24.05";
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index 2859584..0eee8b1 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -1,5 +1,5 @@
+ {
+-    vscode = {
++    programs.vscode = {
+       enable = true;
+       package = pkgs.vscode;
+       extensions = with pkgs.vscode-extensions; [
+========================================
+Commit: 3cbc5c3f48840d411a16a8ed2f661455885b62a5
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index bf74eef..8aff5df 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -9,7 +9,7 @@
+   imports = [
+ 
+     ./gnome.nix
+-    # ./vscode.nix
++    ./vscode.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+@@ -82,26 +82,26 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-    vscode = {
+-      enable = true;
+-      package = pkgs.vscode;
+-      extensions = with pkgs.vscode-extensions; [
+-        eamodio.gitlens
+-        bbenoist.nix
+-        jnoortheen.nix-ide
+-        arcticicestudio.nord-visual-studio-code
+-      ];
++  #   vscode = {
++  #     enable = true;
++  #     package = pkgs.vscode;
++  #     extensions = with pkgs.vscode-extensions; [
++  #       eamodio.gitlens
++  #       bbenoist.nix
++  #       jnoortheen.nix-ide
++  #       arcticicestudio.nord-visual-studio-code
++  #     ];
+ 
+-      userSettings = {
+-        "user.colorTheme" = "Nord";
+-        "workbench.colorTheme" = "Nord";
+-        "terminal.integrated.fontFamily" = "Hack";
+-        "nix.enableLanguageServer" = true;
+-      };
+-    };
++  #     userSettings = {
++  #       "user.colorTheme" = "Nord";
++  #       "workbench.colorTheme" = "Nord";
++  #       "terminal.integrated.fontFamily" = "Hack";
++  #       "nix.enableLanguageServer" = true;
++  #     };
++  #   };
+ 
+-    home-manager.enable = true;
+-  };
++  #   home-manager.enable = true;
++  # };
+ 
+   systemd.user.startServices = "sd-switch";   # Nicely reload system units when changing configs
+   home.stateVersion = "24.05";
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+index 34e79a4..2859584 100644
+--- a/home-manager/vscode.nix
++++ b/home-manager/vscode.nix
+@@ -1,9 +1,4 @@
+-{ inputs
+-, lib
+-, config
+-, pkgs
+-, ...
+-}: {
++{
+     vscode = {
+       enable = true;
+       package = pkgs.vscode;
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index f6dfba6..c66631b 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -12,7 +12,7 @@
+     videoDrivers = ["nvidia"];
+   };
+ 
+-    environment.systemPackages = with pkgs; [
++  environment.systemPackages = with pkgs; [
+     mesa
+     glxinfo
+   ];
+========================================
+Commit: 419d4293466d59786f0f12ef110c54ea22cfb2bb
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 3d19a2c..bf74eef 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -9,7 +9,7 @@
+   imports = [
+ 
+     ./gnome.nix
+-    ./vscode.nix
++    # ./vscode.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+@@ -82,23 +82,23 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-    # vscode = {
+-    #   enable = true;
+-    #   package = pkgs.vscode;
+-    #   extensions = with pkgs.vscode-extensions; [
+-    #     eamodio.gitlens
+-    #     bbenoist.nix
+-    #     jnoortheen.nix-ide
+-    #     arcticicestudio.nord-visual-studio-code
+-    #   ];
++    vscode = {
++      enable = true;
++      package = pkgs.vscode;
++      extensions = with pkgs.vscode-extensions; [
++        eamodio.gitlens
++        bbenoist.nix
++        jnoortheen.nix-ide
++        arcticicestudio.nord-visual-studio-code
++      ];
+ 
+-    #   userSettings = {
+-    #     "user.colorTheme" = "Nord";
+-    #     "workbench.colorTheme" = "Nord";
+-    #     "terminal.integrated.fontFamily" = "Hack";
+-    #     "nix.enableLanguageServer" = true;
+-    #   };
+-    # };
++      userSettings = {
++        "user.colorTheme" = "Nord";
++        "workbench.colorTheme" = "Nord";
++        "terminal.integrated.fontFamily" = "Hack";
++        "nix.enableLanguageServer" = true;
++      };
++    };
+ 
+     home-manager.enable = true;
+   };
+========================================
+Commit: e3dc0a5e17800e5d8fde56985572f97fa395850e
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 18f3578..3d19a2c 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -9,6 +9,7 @@
+   imports = [
+ 
+     ./gnome.nix
++    ./vscode.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+========================================
+Commit: 79908f7fa7d374f882a8dc4e3151fa65db25c431
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 7cada12..18f3578 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -81,23 +81,23 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-    vscode = {
+-      enable = true;
+-      package = pkgs.vscode;
+-      extensions = with pkgs.vscode-extensions; [
+-        eamodio.gitlens
+-        bbenoist.nix
+-        jnoortheen.nix-ide
+-        arcticicestudio.nord-visual-studio-code
+-      ];
++    # vscode = {
++    #   enable = true;
++    #   package = pkgs.vscode;
++    #   extensions = with pkgs.vscode-extensions; [
++    #     eamodio.gitlens
++    #     bbenoist.nix
++    #     jnoortheen.nix-ide
++    #     arcticicestudio.nord-visual-studio-code
++    #   ];
+ 
+-      userSettings = {
+-        "user.colorTheme" = "Nord";
+-        "workbench.colorTheme" = "Nord";
+-        "terminal.integrated.fontFamily" = "Hack";
+-        "nix.enableLanguageServer" = true;
+-      };
+-    };
++    #   userSettings = {
++    #     "user.colorTheme" = "Nord";
++    #     "workbench.colorTheme" = "Nord";
++    #     "terminal.integrated.fontFamily" = "Hack";
++    #     "nix.enableLanguageServer" = true;
++    #   };
++    # };
+ 
+     home-manager.enable = true;
+   };
+diff --git a/home-manager/vscode.nix b/home-manager/vscode.nix
+new file mode 100644
+index 0000000..34e79a4
+--- /dev/null
++++ b/home-manager/vscode.nix
+@@ -0,0 +1,24 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++    vscode = {
++      enable = true;
++      package = pkgs.vscode;
++      extensions = with pkgs.vscode-extensions; [
++        eamodio.gitlens
++        bbenoist.nix
++        jnoortheen.nix-ide
++        arcticicestudio.nord-visual-studio-code
++      ];
++
++      userSettings = {
++        "user.colorTheme" = "Nord";
++        "workbench.colorTheme" = "Nord";
++        "terminal.integrated.fontFamily" = "Hack";
++        "nix.enableLanguageServer" = true;
++      };
++    };   
++}
+========================================
+Commit: 2801f0c5d7612e11c243fd2d340943f350e7a083
+----------------------------------------
+diff --git a/home-manager/gnome.nix b/home-manager/gnome.nix
+new file mode 100644
+index 0000000..fbb5efa
+--- /dev/null
++++ b/home-manager/gnome.nix
+@@ -0,0 +1,8 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++    
++}
+\ No newline at end of file
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index dcc1d8d..7cada12 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -5,13 +5,10 @@
+ , pkgs
+ , ...
+ }: {
+-  # You can import other home-manager modules here
++
+   imports = [
+-    # TODO: in the future I might want to use home-manager modules from other flakes
+-    # inputs.nix-colors.homeManagerModule
+ 
+-    # You can also split up your configuration and import pieces of it here:
+-    # ./nvim.nix
++    ./gnome.nix
+   ];
+   # programs.steam = {
+   #   enable = true;
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 2d920de..3864ddc 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -15,7 +15,6 @@
+   ];
+ 
+   nixpkgs.config.allowUnfree = true;
+-
+   boot.loader.systemd-boot.enable = true;
+   boot.loader.efi.canTouchEfiVariables = true;
+ 
+@@ -53,7 +52,7 @@
+     hwinfo
+     libinput
+     gnome3.gnome-tweaks
+-
++    gnome3.gnome-session
+   ];
+ 
+   programs.steam = {
+@@ -67,9 +66,22 @@
+   services.xserver.enable = true;
+   services.xserver.displayManager.gdm.enable = true;
+   services.xserver.desktopManager.gnome.enable = true;
+-  services.displayManager.autoLogin.enable = true;
+-  services.displayManager.autoLogin.user = "thiago";
++  services.gnome.gnome-remote-desktop.enable = true; 
++  services.displayManager.autoLogin.enable = false;
++ # services.displayManager.autoLogin.user = "thiago";
++
++  services.xrdp.enable = true;
++  services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
++  services.xrdp.openFirewall = true;
+   
++  # Open ports in the firewall.
++  networking.firewall = {
++    enable = true;
++    allowedTCPPorts = [ 3389 ];
++    allowedUDPPorts = [ 3389 ];
++  };
++
++
+   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+   systemd.services."getty@tty1".enable = false;
+   systemd.services."autovt@tty1".enable = false;
+========================================
+Commit: 30ee8717ccd482d50fe13b2ec854cc72c806e9f4
+----------------------------------------
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index e12b4b8..2d920de 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -8,23 +8,43 @@
+   imports = [
+     ./hardware-configuration.nix
+     ../common/default.nix
++    ../common/network.nix
+     ../common/screen.nix
+     ../common/nvidia/default.nix
+     ../common/podman/default.nix
+   ];
+ 
+-  # Bootloader.
++  nixpkgs.config.allowUnfree = true;
++
+   boot.loader.systemd-boot.enable = true;
+   boot.loader.efi.canTouchEfiVariables = true;
+-  
+-  networking.hostName = "Nixstation";
+ 
++  time.timeZone = "America/Sao_Paulo";
++
++  services.xserver.xkb = {  # Configure keymap in X11
++    layout = "us";
++    variant = "alt-intl";
++  };
++
++  i18n.defaultLocale = "en_US.UTF-8";
++  i18n.extraLocaleSettings = {
++    LC_ADDRESS = "pt_BR.UTF-8";
++    LC_IDENTIFICATION = "pt_BR.UTF-8";
++    LC_MEASUREMENT = "pt_BR.UTF-8";
++    LC_MONETARY = "pt_BR.UTF-8";
++    LC_NAME = "pt_BR.UTF-8";
++    LC_NUMERIC = "pt_BR.UTF-8";
++    LC_PAPER = "pt_BR.UTF-8";
++    LC_TELEPHONE = "pt_BR.UTF-8";
++    LC_TIME = "pt_BR.UTF-8";
++  };
++  
++  
+   environment.systemPackages = with pkgs; [
+     wget
+     python3
+     git
+     exfat
+-    neovim
+     nil
+     nixpkgs-fmt
+     home-manager
+@@ -44,35 +64,17 @@
+      # Open ports in the firewall for Steam Local Network Game Transfers
+   };
+ 
+-  networking.networkmanager.enable = true;
+-  time.timeZone = "America/Sao_Paulo";
+-  i18n.defaultLocale = "en_US.UTF-8";
+-
+-  i18n.extraLocaleSettings = {
+-    LC_ADDRESS = "pt_BR.UTF-8";
+-    LC_IDENTIFICATION = "pt_BR.UTF-8";
+-    LC_MEASUREMENT = "pt_BR.UTF-8";
+-    LC_MONETARY = "pt_BR.UTF-8";
+-    LC_NAME = "pt_BR.UTF-8";
+-    LC_NUMERIC = "pt_BR.UTF-8";
+-    LC_PAPER = "pt_BR.UTF-8";
+-    LC_TELEPHONE = "pt_BR.UTF-8";
+-    LC_TIME = "pt_BR.UTF-8";
+-  };
+-
+-  # Enable the X11 windowing system.
+   services.xserver.enable = true;
+-
+-  # Enable the GNOME Desktop Environment.
+   services.xserver.displayManager.gdm.enable = true;
+   services.xserver.desktopManager.gnome.enable = true;
+-  services.samba.enable = true;
++  services.displayManager.autoLogin.enable = true;
++  services.displayManager.autoLogin.user = "thiago";
++  
++  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
++  systemd.services."getty@tty1".enable = false;
++  systemd.services."autovt@tty1".enable = false;
++
+ 
+-  # Configure keymap in X11
+-  services.xserver.xkb = {
+-    layout = "us";
+-    variant = "alt-intl";
+-  };
+ 
+ 
+   # Enable CUPS to print documents.
+@@ -87,16 +89,11 @@
+     pulse.enable = true;
+   };
+ 
+-  services.displayManager.autoLogin.enable = true;
+-  services.displayManager.autoLogin.user = "thiago";
+ 
+-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+-  systemd.services."getty@tty1".enable = false;
+-  systemd.services."autovt@tty1".enable = false;
+ 
+-  nixpkgs.config.allowUnfree = true;
+ 
+-  services.openssh.enable = true;
++
++    
+   virtualisation.spiceUSBRedirection.enable = true;
+   virtualisation.libvirtd = {
+     enable = true;
+diff --git a/hosts/common/network.nix b/hosts/common/network.nix
+new file mode 100644
+index 0000000..74bb981
+--- /dev/null
++++ b/hosts/common/network.nix
+@@ -0,0 +1,8 @@
++{ config, lib, pkgs, ... }:
++{
++    networking.hostName = "Nixstation";
++    networking.networkmanager.enable = true;
++    services.tailscale.enable = true;
++    services.samba.enable = true;
++    services.openssh.enable = true;
++}
+\ No newline at end of file
+diff --git a/hosts/common/screen.nix b/hosts/common/screen.nix
+index 2341ab3..7e7db92 100644
+--- a/hosts/common/screen.nix
++++ b/hosts/common/screen.nix
+@@ -1,7 +1,11 @@
+ { config, lib, pkgs, ... }:
+ {
+-    boot.initrd.availableKernelModules = [ i2c-dev ];
+-
++    # boot.kernelModules = ["i2c-dev"];
++    # services.udev.extraRules = ''
++    #     KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
++    # '';
++    # users.groups.i2c = {};
++    hardware.i2c.enable = true;
+     environment.systemPackages = with pkgs; [
+         ddcutil
+         ddcui
+========================================
+Commit: b1063312e13a5bb757bb542737af3a1f8f59ee90
+----------------------------------------
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 753b034..e12b4b8 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -8,6 +8,7 @@
+   imports = [
+     ./hardware-configuration.nix
+     ../common/default.nix
++    ../common/screen.nix
+     ../common/nvidia/default.nix
+     ../common/podman/default.nix
+   ];
+diff --git a/hosts/common/screen.nix b/hosts/common/screen.nix
+new file mode 100644
+index 0000000..2341ab3
+--- /dev/null
++++ b/hosts/common/screen.nix
+@@ -0,0 +1,9 @@
++{ config, lib, pkgs, ... }:
++{
++    boot.initrd.availableKernelModules = [ i2c-dev ];
++
++    environment.systemPackages = with pkgs; [
++        ddcutil
++        ddcui
++    ];
++}
+\ No newline at end of file
+========================================
+Commit: bcf1bdcf1033ca4fedd28eb659f3d1a0eab5f3bc
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 95fb59e..dcc1d8d 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -49,7 +49,6 @@
+     homeDirectory = "/home/thiago";
+     packages = with pkgs;[
+       nil
+-      transmission
+       transmission-gtk
+       # steam
+       nordic
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 125c25c..753b034 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -96,11 +96,15 @@
+   nixpkgs.config.allowUnfree = true;
+ 
+   services.openssh.enable = true;
+-
++  virtualisation.spiceUSBRedirection.enable = true;
+   virtualisation.libvirtd = {
+     enable = true;
+-    qemuOvmf = true;
++    qemu.ovmf.enable = true;
+   };
++  # virtualisation.libvirtd = {
++  #   enable = true;
++  #   qemuOvmf = true;
++  # };
+   
+   programs.virt-manager.enable = true;
+ 
+diff --git a/hosts/common/users/thiago/default.nix b/hosts/common/users/thiago/default.nix
+index 36c317e..98a1c1a 100644
+--- a/hosts/common/users/thiago/default.nix
++++ b/hosts/common/users/thiago/default.nix
+@@ -12,6 +12,8 @@ in
+       "podman"
+       "git"
+       "libvirtd"
++      "libvirt"
++      "kvm"
+     ];
+ 
+     packages = [ pkgs.home-manager ];
+========================================
+Commit: 99fceb598fae54d2083c545ea0cbdd532e3e443f
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index f99fcc7..95fb59e 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -49,6 +49,8 @@
+     homeDirectory = "/home/thiago";
+     packages = with pkgs;[
+       nil
++      transmission
++      transmission-gtk
+       # steam
+       nordic
+       sysbench
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index f48a13c..125c25c 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -9,7 +9,7 @@
+     ./hardware-configuration.nix
+     ../common/default.nix
+     ../common/nvidia/default.nix
+-    ../common/docker/default.nix
++    ../common/podman/default.nix
+   ];
+ 
+   # Bootloader.
+@@ -32,6 +32,7 @@
+     hwinfo
+     libinput
+     gnome3.gnome-tweaks
++
+   ];
+ 
+   programs.steam = {
+diff --git a/hosts/common/docker/default.nix b/hosts/common/docker/default.nix
+deleted file mode 100644
+index fa0ef57..0000000
+--- a/hosts/common/docker/default.nix
++++ /dev/null
+@@ -1,40 +0,0 @@
+-{ config, lib, pkgs, ... }:
+-{
+-    nixpkgs.overlays = [ (final: prev: 
+-    let 
+-        my-config-toml = prev.pkgs.writeText "config.toml" ''
+-                disable-require = false
+-                #swarm-resource = "DOCKER_RESOURCE_GPU"
+-
+-                [nvidia-container-cli]
+-                #root = "/run/nvidia/driver"
+-                #path = "/usr/bin/nvidia-container-cli"
+-                environment = []
+-                #debug = "/var/log/nvidia-container-runtime-hook.log"
+-                ldcache = "/tmp/ld.so.cache"
+-                load-kmods = true
+-                no-cgroups = true
+-                #user = "root:video"
+-                ldconfig = "@@glibcbin@/bin/ldconfig"
+-        '';
+-    in
+-    {
+-        nvidia-docker = prev.pkgs.mkNvidiaContainerPkg {
+-            name = "nvidia-docker";
+-            containerRuntimePath = "runc"; 
+-            configTemplate = my-config-toml ;
+-            additionalPaths = [(prev.pkgs.callPackage <nixpkgs/pkgs/applications/virtualization/nvidia-docker> {})];
+-        };
+-     })];
+-
+-  virtualisation.docker.rootless = {
+-    enable = true;
+-    setSocketVariable = true;
+-    daemon.settings = {
+-        default-runtime = "nvidia";
+-        runtimes.nvidia.path = "${pkgs.nvidia-docker}/bin/nvidia-container-runtime";
+-        exec-opts = ["native.cgroupdriver=cgroupfs"];
+-    };
+-  };
+-}
+-
+diff --git a/hosts/common/podman/default.nix b/hosts/common/podman/default.nix
+new file mode 100644
+index 0000000..bdb87f1
+--- /dev/null
++++ b/hosts/common/podman/default.nix
+@@ -0,0 +1,24 @@
++{ pkgs, ... }:
++{
++  # Enable common container config files in /etc/containers
++  virtualisation.containers.enable = true;
++  virtualisation = {
++    podman = {
++      enable = true;
++
++      # Create a `docker` alias for podman, to use it as a drop-in replacement
++      dockerCompat = true;
++
++      # Required for containers under podman-compose to be able to talk to each other.
++      defaultNetwork.settings.dns_enabled = true;
++    };
++  };
++
++  # Useful other development tools
++  environment.systemPackages = with pkgs; [
++    dive # look into docker image layers
++    podman-tui # status of containers in the terminal
++    docker-compose # start group of containers for dev
++    #podman-compose # start group of containers for dev
++  ];
++}
+\ No newline at end of file
+========================================
+Commit: 83f166431c61b8773a675cbead037ee12343d3f3
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 030a167..f99fcc7 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -3,7 +3,6 @@
+ , lib
+ , config
+ , pkgs
+-, programs
+ , ...
+ }: {
+   # You can import other home-manager modules here
+@@ -62,12 +61,11 @@
+       kitty
+       nixpkgs-fmt
+       rclone
+-
++      lilipod
++      distrobox
++      
+     ];
+   };
+-  
+-
+-
+ 
+   programs = {
+     neovim = {
+@@ -78,7 +76,6 @@
+       vimdiffAlias = true;
+     };
+ 
+-    #GIT
+     git = {
+       enable = true;
+       lfs.enable = true;
+@@ -86,7 +83,6 @@
+       userName = "Thiago Sposito";
+     };
+ 
+-    #VS CODE
+     vscode = {
+       enable = true;
+       package = pkgs.vscode;
+@@ -97,7 +93,6 @@
+         arcticicestudio.nord-visual-studio-code
+       ];
+ 
+-
+       userSettings = {
+         "user.colorTheme" = "Nord";
+         "workbench.colorTheme" = "Nord";
+@@ -109,10 +104,6 @@
+     home-manager.enable = true;
+   };
+ 
+-
+-  # Nicely reload system units when changing configs
+-  systemd.user.startServices = "sd-switch";
+-
+-
+-  home.stateVersion = "23.11";
++  systemd.user.startServices = "sd-switch";   # Nicely reload system units when changing configs
++  home.stateVersion = "24.05";
+ }
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 519ff3c..f48a13c 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -1,5 +1,3 @@
+-# This replaces /etc/nixos/configuration.nix)
+-
+ { inputs
+ , lib
+ , config
+@@ -11,19 +9,18 @@
+     ./hardware-configuration.nix
+     ../common/default.nix
+     ../common/nvidia/default.nix
++    ../common/docker/default.nix
+   ];
+ 
+-
+   # Bootloader.
+   boot.loader.systemd-boot.enable = true;
+   boot.loader.efi.canTouchEfiVariables = true;
+   
+   networking.hostName = "Nixstation";
+ 
+-
+-
+   environment.systemPackages = with pkgs; [
+     wget
++    python3
+     git
+     exfat
+     neovim
+@@ -37,18 +34,16 @@
+     gnome3.gnome-tweaks
+   ];
+ 
++  programs.steam = {
++    enable = true;
++    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
++    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
++    localNetworkGameTransfers.openFirewall = true;
++     # Open ports in the firewall for Steam Local Network Game Transfers
++  };
+ 
+- # Configure network proxy if necessary
+-  # networking.proxy.default = "http://user:password@proxy:port/";
+-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+-
+-  # Enable networking
+   networking.networkmanager.enable = true;
+-
+-  # Set your time zone.
+   time.timeZone = "America/Sao_Paulo";
+-
+-  # Select internationalisation properties.
+   i18n.defaultLocale = "en_US.UTF-8";
+ 
+   i18n.extraLocaleSettings = {
+@@ -69,7 +64,7 @@
+   # Enable the GNOME Desktop Environment.
+   services.xserver.displayManager.gdm.enable = true;
+   services.xserver.desktopManager.gnome.enable = true;
+-
++  services.samba.enable = true;
+ 
+   # Configure keymap in X11
+   services.xserver.xkb = {
+@@ -77,13 +72,10 @@
+     variant = "alt-intl";
+   };
+ 
+-  # Configure console keymap
+-  # console.keyMap = "dvorak";
+ 
+   # Enable CUPS to print documents.
+   services.printing.enable = true;
+ 
+-  # Enable sound with pipewire.
+   hardware.pulseaudio.enable = false;
+   security.rtkit.enable = true;
+   services.pipewire = {
+@@ -91,31 +83,8 @@
+     alsa.enable = true;
+     alsa.support32Bit = true;
+     pulse.enable = true;
+-    # If you want to use JACK applications, uncomment this
+-    #jack.enable = true;
+-
+-    # use the example session manager (no others are packaged yet so this is enabled by default,
+-    # no need to redefine it in your config for now)
+-    #media-session.enable = true;
+   };
+ 
+-  # Enable touchpad support (enabled default in most desktopManager).
+-  # services.xserver.libinput.enable = true;
+-
+-  # Define a user account. Don't forget to set a password with ‘passwd’.
+- # users.users.thiago = {
+-  #  isNormalUser = true;
+-   # description = "Thiago Sposito";
+-    # extraGroups = [ "networkmanager" "wheel" ];
+-   # packages = with pkgs; [
+-    #  thunderbird
+-   # git
+-   # neovim
+-   # file
+-   # ];
+-  #};
+-
+-  # Enable automatic login for the user.
+   services.displayManager.autoLogin.enable = true;
+   services.displayManager.autoLogin.user = "thiago";
+ 
+@@ -123,43 +92,16 @@
+   systemd.services."getty@tty1".enable = false;
+   systemd.services."autovt@tty1".enable = false;
+ 
+-  # Install firefox.
+-  programs.firefox.enable = true;
+-
+-  # Allow unfree packages
+   nixpkgs.config.allowUnfree = true;
+ 
+-  # List packages installed in system profile. To search, run:
+-  # $ nix search wget
+-#  environment.systemPackages = with pkgs; [
+-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+-  #  wget
+- # ];
+-
+-  # Some programs need SUID wrappers, can be configured further or are
+-  # started in user sessions.
+-  # programs.mtr.enable = true;
+-  # programs.gnupg.agent = {
+-  #   enable = true;
+-  #   enableSSHSupport = true;
+-  # };
+-
+-  # List services that you want to enable:
+-
+-  # Enable the OpenSSH daemon.
+   services.openssh.enable = true;
+ 
+-  # Open ports in the firewall.
+-  # networking.firewall.allowedTCPPorts = [ ... ];
+-  # networking.firewall.allowedUDPPorts = [ ... ];
+-  # Or disable the firewall altogether.
+-  # networking.firewall.enable = false;
+-
+-  # This value determines the NixOS release from which the default
+-  # settings for stateful data, like file locations and database versions
+-  # on your system were taken. It‘s perfectly fine and recommended to leave
+-  # this value at the release version of the first install of this system.
+-  # Before changing this value read the documentation for this option
+-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
++  virtualisation.libvirtd = {
++    enable = true;
++    qemuOvmf = true;
++  };
++  
++  programs.virt-manager.enable = true;
++
+   system.stateVersion = "24.05"; # Did you read the comment?
+ }
+diff --git a/hosts/common/docker/default.nix b/hosts/common/docker/default.nix
+new file mode 100644
+index 0000000..fa0ef57
+--- /dev/null
++++ b/hosts/common/docker/default.nix
+@@ -0,0 +1,40 @@
++{ config, lib, pkgs, ... }:
++{
++    nixpkgs.overlays = [ (final: prev: 
++    let 
++        my-config-toml = prev.pkgs.writeText "config.toml" ''
++                disable-require = false
++                #swarm-resource = "DOCKER_RESOURCE_GPU"
++
++                [nvidia-container-cli]
++                #root = "/run/nvidia/driver"
++                #path = "/usr/bin/nvidia-container-cli"
++                environment = []
++                #debug = "/var/log/nvidia-container-runtime-hook.log"
++                ldcache = "/tmp/ld.so.cache"
++                load-kmods = true
++                no-cgroups = true
++                #user = "root:video"
++                ldconfig = "@@glibcbin@/bin/ldconfig"
++        '';
++    in
++    {
++        nvidia-docker = prev.pkgs.mkNvidiaContainerPkg {
++            name = "nvidia-docker";
++            containerRuntimePath = "runc"; 
++            configTemplate = my-config-toml ;
++            additionalPaths = [(prev.pkgs.callPackage <nixpkgs/pkgs/applications/virtualization/nvidia-docker> {})];
++        };
++     })];
++
++  virtualisation.docker.rootless = {
++    enable = true;
++    setSocketVariable = true;
++    daemon.settings = {
++        default-runtime = "nvidia";
++        runtimes.nvidia.path = "${pkgs.nvidia-docker}/bin/nvidia-container-runtime";
++        exec-opts = ["native.cgroupdriver=cgroupfs"];
++    };
++  };
++}
++
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index 7b51934..f6dfba6 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -3,9 +3,19 @@
+   # Enable OpenGL
+   hardware.opengl = {
+     enable = true;
++    driSupport = true;
++    driSupport32Bit = true;
+   };
+ 
+-  services.xserver.videoDrivers = ["nvidia"];
++  services.xserver = {
++    enable = true;
++    videoDrivers = ["nvidia"];
++  };
++
++    environment.systemPackages = with pkgs; [
++    mesa
++    glxinfo
++  ];
+ 
+   hardware.nvidia = {
+     modesetting.enable = true;
+========================================
+Commit: cc3f6aa5166b2028e953e1f70aee38f5412dff87
+----------------------------------------
+diff --git a/flake.lock b/flake.lock
+index 4c652e6..6a16e3e 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -148,16 +148,16 @@
+     },
+     "nixpkgs": {
+       "locked": {
+-        "lastModified": 1711163522,
+-        "narHash": "sha256-YN/Ciidm+A0fmJPWlHBGvVkcarYWSC+s3NTPk/P+q3c=",
++        "lastModified": 1721548954,
++        "narHash": "sha256-7cCC8+Tdq1+3OPyc3+gVo9dzUNkNIQfwSDJ2HSi2u3o=",
+         "owner": "nixos",
+         "repo": "nixpkgs",
+-        "rev": "44d0940ea560dee511026a53f0e2e2cde489b4d4",
++        "rev": "63d37ccd2d178d54e7fb691d7ec76000740ea24a",
+         "type": "github"
+       },
+       "original": {
+         "owner": "nixos",
+-        "ref": "nixos-unstable",
++        "ref": "nixos-24.05",
+         "repo": "nixpkgs",
+         "type": "github"
+       }
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index ee379b9..030a167 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -14,12 +14,12 @@
+     # You can also split up your configuration and import pieces of it here:
+     # ./nvim.nix
+   ];
+-  programs.steam = {
+-    enable = true;
+-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+-    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+-  };
++  # programs.steam = {
++  #   enable = true;
++  #   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
++  #   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
++  #   localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
++  # };
+   nixpkgs = {
+ 
+     overlays = [
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 9826f1b..519ff3c 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -72,9 +72,9 @@
+ 
+ 
+   # Configure keymap in X11
+-  services.xserver = {
++  services.xserver.xkb = {
+     layout = "us";
+-    xkbVariant = "alt-intl";
++    variant = "alt-intl";
+   };
+ 
+   # Configure console keymap
+@@ -116,8 +116,8 @@
+   #};
+ 
+   # Enable automatic login for the user.
+-  services.xserver.displayManager.autoLogin.enable = true;
+-  services.xserver.displayManager.autoLogin.user = "thiago";
++  services.displayManager.autoLogin.enable = true;
++  services.displayManager.autoLogin.user = "thiago";
+ 
+   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+   systemd.services."getty@tty1".enable = false;
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+index 56f6fec..7b51934 100644
+--- a/hosts/common/nvidia/default.nix
++++ b/hosts/common/nvidia/default.nix
+@@ -5,38 +5,14 @@
+     enable = true;
+   };
+ 
+-  # Load nvidia driver for Xorg and Wayland
+   services.xserver.videoDrivers = ["nvidia"];
+ 
+   hardware.nvidia = {
+-
+-    # Modesetting is required.
+     modesetting.enable = true;
+-
+-    # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
+-    # Enable this if you have graphical corruption issues or application crashes after waking
+-    # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
+-    # of just the bare essentials.
+     powerManagement.enable = false;
+-
+-    # Fine-grained power management. Turns off GPU when not in use.
+-    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
+     powerManagement.finegrained = false;
+-
+-    # Use the NVidia open source kernel module (not to be confused with the
+-    # independent third-party "nouveau" open source driver).
+-    # Support is limited to the Turing and later architectures. Full list of 
+-    # supported GPUs is at: 
+-    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
+-    # Only available from driver 515.43.04+
+-    # Currently alpha-quality/buggy, so false is currently the recommended setting.
+-    open = false;
+-
+-    # Enable the Nvidia settings menu,
+-	# accessible via `nvidia-settings`.
++    open = false; #keep it like that for now, unstable!!
+     nvidiaSettings = true;
+-
+-    # Optionally, you may need to select the appropriate driver version for your specific GPU.
+     package = config.boot.kernelPackages.nvidiaPackages.stable;
+   };
+-}
+\ No newline at end of file
++}
+========================================
+Commit: 708d9426eaebae0e512cceb1ed27fefebc6a6ded
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index 36825c5..1c8bc52 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -2,7 +2,7 @@
+   description = "My personal NixOS Config";
+ 
+   inputs = {
+-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
++    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+ 
+     home-manager = {
+       url = "github:nix-community/home-manager/master";
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 629dd1c..ee379b9 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -3,6 +3,7 @@
+ , lib
+ , config
+ , pkgs
++, programs
+ , ...
+ }: {
+   # You can import other home-manager modules here
+@@ -49,7 +50,7 @@
+     homeDirectory = "/home/thiago";
+     packages = with pkgs;[
+       nil
+-      steam
++      # steam
+       nordic
+       sysbench
+       firefox
+========================================
+Commit: 564f65fc133985ea33c0d5f959b9219df1077a37
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 3947127..629dd1c 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -36,7 +36,11 @@
+     config = {
+       allowUnfree = true;
+       # Workaround for https://github.com/nix-community/home-manager/issues/2942
+-      allowUnfreePredicate = _: true;
++      nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
++        "steam"
++        "steam-original"
++        "steam-run"
++      ];
+     };
+   };
+ 
+========================================
+Commit: a545d695c63aa5b7240a928e6720ad13a28058f3
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index f0a414e..3947127 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -13,7 +13,12 @@
+     # You can also split up your configuration and import pieces of it here:
+     # ./nvim.nix
+   ];
+-  programs.steam.enable = true;
++  programs.steam = {
++    enable = true;
++    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
++    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
++    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
++  };
+   nixpkgs = {
+ 
+     overlays = [
+========================================
+Commit: fc7fbd4b77b7d8583581dcc9198874d77eb9d3ef
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 73de74e..f0a414e 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -13,7 +13,7 @@
+     # You can also split up your configuration and import pieces of it here:
+     # ./nvim.nix
+   ];
+-
++  programs.steam.enable = true;
+   nixpkgs = {
+ 
+     overlays = [
+@@ -27,7 +27,7 @@
+       #   });
+       # })
+     ];
+-    programs.steam.enable = true;
++    
+     config = {
+       allowUnfree = true;
+       # Workaround for https://github.com/nix-community/home-manager/issues/2942
+========================================
+Commit: 37adbcdc7629985e9c1c8ecbaa4d36035ce369a8
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index f8ddc30..73de74e 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -27,7 +27,7 @@
+       #   });
+       # })
+     ];
+-
++    programs.steam.enable = true;
+     config = {
+       allowUnfree = true;
+       # Workaround for https://github.com/nix-community/home-manager/issues/2942
+@@ -53,19 +53,13 @@
+       nixpkgs-fmt
+       rclone
+ 
+-      mkShell {
+-        buildInputs = with pkgs; [
+-          rnix-lsp
+-        ];
+-      }
+-      
+     ];
+   };
++  
+ 
+ 
+ 
+   programs = {
+-    # NEOVIM
+     neovim = {
+       enable = true;
+       defaultEditor = true;
+========================================
+Commit: de941dc9aec40611ec38ce302d58201d2940d021
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index d6c4d0a..f8ddc30 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -52,6 +52,13 @@
+       kitty
+       nixpkgs-fmt
+       rclone
++
++      mkShell {
++        buildInputs = with pkgs; [
++          rnix-lsp
++        ];
++      }
++      
+     ];
+   };
+ 
+@@ -91,6 +98,7 @@
+         "user.colorTheme" = "Nord";
+         "workbench.colorTheme" = "Nord";
+         "terminal.integrated.fontFamily" = "Hack";
++        "nix.enableLanguageServer" = true;
+       };
+     };
+ 
+========================================
+Commit: 70ccd1f2f4eb13b018fd6934938e3980d2b5b7f2
+----------------------------------------
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index c023061..9826f1b 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -34,6 +34,7 @@
+     gcsfuse
+     hwinfo
+     libinput
++    gnome3.gnome-tweaks
+   ];
+ 
+ 
+@@ -69,6 +70,7 @@
+   services.xserver.displayManager.gdm.enable = true;
+   services.xserver.desktopManager.gnome.enable = true;
+ 
++
+   # Configure keymap in X11
+   services.xserver = {
+     layout = "us";
+========================================
+Commit: 38a8e3693d717b1306cecad9dcdb3f81c9d87b4f
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index 8c6ae24..36825c5 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -46,7 +46,7 @@
+ 
+           modules = [ ./home-manager/home.nix ];
+           };
+-          "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
++        "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
+           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+           extraSpecialArgs = { inherit inputs outputs; };
+ 
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+index 2eb5d6b..c023061 100644
+--- a/hosts/Nixstation/default.nix
++++ b/hosts/Nixstation/default.nix
+@@ -10,6 +10,7 @@
+   imports = [
+     ./hardware-configuration.nix
+     ../common/default.nix
++    ../common/nvidia/default.nix
+   ];
+ 
+ 
+diff --git a/hosts/common/nvidia/default.nix b/hosts/common/nvidia/default.nix
+new file mode 100644
+index 0000000..56f6fec
+--- /dev/null
++++ b/hosts/common/nvidia/default.nix
+@@ -0,0 +1,42 @@
++{ config, lib, pkgs, ... }:
++{
++  # Enable OpenGL
++  hardware.opengl = {
++    enable = true;
++  };
++
++  # Load nvidia driver for Xorg and Wayland
++  services.xserver.videoDrivers = ["nvidia"];
++
++  hardware.nvidia = {
++
++    # Modesetting is required.
++    modesetting.enable = true;
++
++    # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
++    # Enable this if you have graphical corruption issues or application crashes after waking
++    # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
++    # of just the bare essentials.
++    powerManagement.enable = false;
++
++    # Fine-grained power management. Turns off GPU when not in use.
++    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
++    powerManagement.finegrained = false;
++
++    # Use the NVidia open source kernel module (not to be confused with the
++    # independent third-party "nouveau" open source driver).
++    # Support is limited to the Turing and later architectures. Full list of 
++    # supported GPUs is at: 
++    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
++    # Only available from driver 515.43.04+
++    # Currently alpha-quality/buggy, so false is currently the recommended setting.
++    open = false;
++
++    # Enable the Nvidia settings menu,
++	# accessible via `nvidia-settings`.
++    nvidiaSettings = true;
++
++    # Optionally, you may need to select the appropriate driver version for your specific GPU.
++    package = config.boot.kernelPackages.nvidiaPackages.stable;
++  };
++}
+\ No newline at end of file
+========================================
+Commit: ce45de77fade46fa533a2432da786f5325667bc7
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index 8cf7391..8c6ae24 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -32,6 +32,10 @@
+           specialArgs = { inherit inputs outputs; };
+           modules = [ ./hosts/Nixbook ];
+         };
++        Nixstation = nixpkgs.lib.nixosSystem {
++          specialArgs = { inherit inputs outputs; };
++          modules = [ ./hosts/Nixstation];
++        };
+       };
+ 
+       # Available through 'home-manager switch --flake .#Nixbook@thiago'
+@@ -41,7 +45,14 @@
+           extraSpecialArgs = { inherit inputs outputs; };
+ 
+           modules = [ ./home-manager/home.nix ];
+-        };
++          };
++          "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
++          pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
++          extraSpecialArgs = { inherit inputs outputs; };
++
++          modules = [ ./home-manager/home.nix ];
++          };
++        
+       };
+     };
+ }
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 8edbc70..d6c4d0a 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -49,7 +49,6 @@
+       inkscape
+       blender
+       fira-code
+-      waybar
+       kitty
+       nixpkgs-fmt
+       rclone
+diff --git a/hosts/Nixstation/default.nix b/hosts/Nixstation/default.nix
+new file mode 100644
+index 0000000..2eb5d6b
+--- /dev/null
++++ b/hosts/Nixstation/default.nix
+@@ -0,0 +1,162 @@
++# This replaces /etc/nixos/configuration.nix)
++
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++
++  imports = [
++    ./hardware-configuration.nix
++    ../common/default.nix
++  ];
++
++
++  # Bootloader.
++  boot.loader.systemd-boot.enable = true;
++  boot.loader.efi.canTouchEfiVariables = true;
++  
++  networking.hostName = "Nixstation";
++
++
++
++  environment.systemPackages = with pkgs; [
++    wget
++    git
++    exfat
++    neovim
++    nil
++    nixpkgs-fmt
++    home-manager
++    rclone
++    gcsfuse
++    hwinfo
++    libinput
++  ];
++
++
++ # Configure network proxy if necessary
++  # networking.proxy.default = "http://user:password@proxy:port/";
++  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
++
++  # Enable networking
++  networking.networkmanager.enable = true;
++
++  # Set your time zone.
++  time.timeZone = "America/Sao_Paulo";
++
++  # Select internationalisation properties.
++  i18n.defaultLocale = "en_US.UTF-8";
++
++  i18n.extraLocaleSettings = {
++    LC_ADDRESS = "pt_BR.UTF-8";
++    LC_IDENTIFICATION = "pt_BR.UTF-8";
++    LC_MEASUREMENT = "pt_BR.UTF-8";
++    LC_MONETARY = "pt_BR.UTF-8";
++    LC_NAME = "pt_BR.UTF-8";
++    LC_NUMERIC = "pt_BR.UTF-8";
++    LC_PAPER = "pt_BR.UTF-8";
++    LC_TELEPHONE = "pt_BR.UTF-8";
++    LC_TIME = "pt_BR.UTF-8";
++  };
++
++  # Enable the X11 windowing system.
++  services.xserver.enable = true;
++
++  # Enable the GNOME Desktop Environment.
++  services.xserver.displayManager.gdm.enable = true;
++  services.xserver.desktopManager.gnome.enable = true;
++
++  # Configure keymap in X11
++  services.xserver = {
++    layout = "us";
++    xkbVariant = "alt-intl";
++  };
++
++  # Configure console keymap
++  # console.keyMap = "dvorak";
++
++  # Enable CUPS to print documents.
++  services.printing.enable = true;
++
++  # Enable sound with pipewire.
++  hardware.pulseaudio.enable = false;
++  security.rtkit.enable = true;
++  services.pipewire = {
++    enable = true;
++    alsa.enable = true;
++    alsa.support32Bit = true;
++    pulse.enable = true;
++    # If you want to use JACK applications, uncomment this
++    #jack.enable = true;
++
++    # use the example session manager (no others are packaged yet so this is enabled by default,
++    # no need to redefine it in your config for now)
++    #media-session.enable = true;
++  };
++
++  # Enable touchpad support (enabled default in most desktopManager).
++  # services.xserver.libinput.enable = true;
++
++  # Define a user account. Don't forget to set a password with ‘passwd’.
++ # users.users.thiago = {
++  #  isNormalUser = true;
++   # description = "Thiago Sposito";
++    # extraGroups = [ "networkmanager" "wheel" ];
++   # packages = with pkgs; [
++    #  thunderbird
++   # git
++   # neovim
++   # file
++   # ];
++  #};
++
++  # Enable automatic login for the user.
++  services.xserver.displayManager.autoLogin.enable = true;
++  services.xserver.displayManager.autoLogin.user = "thiago";
++
++  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
++  systemd.services."getty@tty1".enable = false;
++  systemd.services."autovt@tty1".enable = false;
++
++  # Install firefox.
++  programs.firefox.enable = true;
++
++  # Allow unfree packages
++  nixpkgs.config.allowUnfree = true;
++
++  # List packages installed in system profile. To search, run:
++  # $ nix search wget
++#  environment.systemPackages = with pkgs; [
++  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
++  #  wget
++ # ];
++
++  # Some programs need SUID wrappers, can be configured further or are
++  # started in user sessions.
++  # programs.mtr.enable = true;
++  # programs.gnupg.agent = {
++  #   enable = true;
++  #   enableSSHSupport = true;
++  # };
++
++  # List services that you want to enable:
++
++  # Enable the OpenSSH daemon.
++  services.openssh.enable = true;
++
++  # Open ports in the firewall.
++  # networking.firewall.allowedTCPPorts = [ ... ];
++  # networking.firewall.allowedUDPPorts = [ ... ];
++  # Or disable the firewall altogether.
++  # networking.firewall.enable = false;
++
++  # This value determines the NixOS release from which the default
++  # settings for stateful data, like file locations and database versions
++  # on your system were taken. It‘s perfectly fine and recommended to leave
++  # this value at the release version of the first install of this system.
++  # Before changing this value read the documentation for this option
++  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
++  system.stateVersion = "24.05"; # Did you read the comment?
++}
+diff --git a/hosts/Nixstation/hardware-configuration.nix b/hosts/Nixstation/hardware-configuration.nix
+new file mode 100644
+index 0000000..6072fd6
+--- /dev/null
++++ b/hosts/Nixstation/hardware-configuration.nix
+@@ -0,0 +1,43 @@
++# Do not modify this file!  It was generated by ‘nixos-generate-config’
++# and may be overwritten by future invocations.  Please make changes
++# to /etc/nixos/configuration.nix instead.
++{ config, lib, pkgs, modulesPath, ... }:
++
++{
++  imports =
++    [ (modulesPath + "/installer/scan/not-detected.nix")
++    ];
++
++  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
++  boot.initrd.kernelModules = [ ];
++  boot.kernelModules = [ "kvm-intel" ];
++  boot.extraModulePackages = [ ];
++
++  fileSystems."/" =
++    { device = "/dev/disk/by-uuid/df74093a-637d-41a5-8c6a-2bf2dccc1506";
++      fsType = "btrfs";
++      options = [ "subvol=@" ];
++    };
++
++  fileSystems."/boot" =
++    { device = "/dev/disk/by-uuid/E9BA-D1A3";
++      fsType = "vfat";
++      options = [ "fmask=0022" "dmask=0022" ];
++    };
++
++  swapDevices = [ ];
++
++  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
++  # (the default) this is the recommended approach. When using systemd-networkd it's
++  # still possible to use this option, but it's recommended to use it in conjunction
++  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
++  networking.useDHCP = lib.mkDefault true;
++  # networking.interfaces.enp129s0f0.useDHCP = lib.mkDefault true;
++  # networking.interfaces.enp129s0f1.useDHCP = lib.mkDefault true;
++  # networking.interfaces.enp7s0.useDHCP = lib.mkDefault true;
++  # networking.interfaces.enp8s0.useDHCP = lib.mkDefault true;
++  # networking.interfaces.wlp4s0.useDHCP = lib.mkDefault true;
++
++  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
++  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
++}
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+index 7e8c81a..014d318 100644
+--- a/hosts/common/default.nix
++++ b/hosts/common/default.nix
+@@ -45,6 +45,8 @@
+     gcsfuse
+     hwinfo
+     libinput
++    file
++    
+   ];
+ 
+ 
+diff --git a/hosts/common/users/thiago/default.nix b/hosts/common/users/thiago/default.nix
+index ba7d1c2..36c317e 100644
+--- a/hosts/common/users/thiago/default.nix
++++ b/hosts/common/users/thiago/default.nix
+@@ -6,29 +6,18 @@ in
+     isNormalUser = true;
+     extraGroups = ["networkmanager" "wheel" ]
+     ++ ifTheyExist [
+-      "minecraft"
+-      "network"
+       "wireshark"
+       "i2c"
+-      "mysql"
+       "docker"
+       "podman"
+       "git"
+       "libvirtd"
+-      "deluge"
+     ];
+ 
+-    # openssh.authorizedKeys.keys = [ (builtins.readFile ../../../../home/misterio/ssh.pub) ];
+-    # hashedPasswordFile = config.sops.secrets.misterio-password.path;
+     packages = [ pkgs.home-manager ];
+   };
+ 
+-  # sops.secrets.misterio-password = {
+-  #   sopsFile = ../../secrets.yaml;
+-  #   neededForUsers = true;
+-  # };
+ 
+-  # home-manager.users.misterio = import ../../../../home/misterio/${config.networking.hostName}.nix;
+ 
+-  # security.pam.services = { swaylock = { }; };
++
+ }
+========================================
+Commit: 6adc0bed9d889108f7bda169180b62fd8ddb5b18
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index e7f9e32..8edbc70 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -39,17 +39,20 @@
+     username = "thiago";
+     homeDirectory = "/home/thiago";
+     packages = with pkgs;[
+-        steam
+-        nordic
+-        sysbench
+-        firefox
+-        obsidian
+-        whatsapp-for-linux
+-        inkscape
+-        blender
+-        fira-code
+-        waybar
+-        kitty
++      nil
++      steam
++      nordic
++      sysbench
++      firefox
++      obsidian
++      whatsapp-for-linux
++      inkscape
++      blender
++      fira-code
++      waybar
++      kitty
++      nixpkgs-fmt
++      rclone
+     ];
+   };
+ 
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+index a22be73..7e8c81a 100644
+--- a/hosts/common/default.nix
++++ b/hosts/common/default.nix
+@@ -33,6 +33,20 @@
+     auto-optimise-store = true;
+   };
+ 
++    environment.systemPackages = with pkgs; [
++    wget
++    git
++    exfat
++    neovim
++    nil
++    nixpkgs-fmt
++    home-manager
++    rclone
++    gcsfuse
++    hwinfo
++    libinput
++  ];
++
+ 
+ 
+ }
+========================================
+Commit: 3f2fae51444ddc6a96a7d230493efaa1e6b0e87c
+----------------------------------------
+diff --git a/hosts/Nixbook/default.nix b/hosts/Nixbook/default.nix
+index 9418cc7..1679010 100644
+--- a/hosts/Nixbook/default.nix
++++ b/hosts/Nixbook/default.nix
+@@ -47,32 +47,6 @@
+     libinput
+   ];
+ 
+-  users.users = {
+-    thiago = {
+-      isNormalUser = true;
+-      description = "Thiago Sposito";
+-      extraGroups = [ "networkmanager" "wheel" ];
+-
+-      packages = with pkgs; [
+-        steam
+-        nordic
+-        nmap
+-        vim
+-        vscode
+-        neovim
+-        sysbench
+-        firefox
+-        obsidian
+-        whatsapp-for-linux
+-        inkscape
+-        blender
+-        lapce
+-        fira-code
+-        waybar
+-        kitty
+-      ];
+-    };
+-  };
+ 
+   services.openssh = {
+     enable = true;
+========================================
+Commit: 3f3f77e46706f0d2d7d65ee50cd223edcefe3722
+----------------------------------------
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..a834076
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,6 @@
++*.otf filter=lfs diff=lfs merge=lfs -text
++*.png filter=lfs diff=lfs merge=lfs -text
++*.jpg filter=lfs diff=lfs merge=lfs -text
++*.jpeg filter=lfs diff=lfs merge=lfs -text
++*.iso filter=lfs diff=lfs merge=lfs -text
++*.zip filter=lfs diff=lfs merge=lfs -text
+diff --git a/flake.lock b/flake.lock
+index 12f1ed7..4c652e6 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -7,32 +7,157 @@
+         ]
+       },
+       "locked": {
+-        "lastModified": 1710888565,
+-        "narHash": "sha256-s9Hi4RHhc6yut4EcYD50sZWRDKsugBJHSbON8KFwoTw=",
++        "lastModified": 1711133180,
++        "narHash": "sha256-WJOahf+6115+GMl3wUfURu8fszuNeJLv9qAWFQl3Vmo=",
+         "owner": "nix-community",
+         "repo": "home-manager",
+-        "rev": "f33900124c23c4eca5831b9b5eb32ea5894375ce",
++        "rev": "1c2c5e4cabba4c43504ef0f8cc3f3dfa284e2dbb",
+         "type": "github"
+       },
+       "original": {
+         "owner": "nix-community",
+-        "ref": "release-23.11",
++        "ref": "master",
+         "repo": "home-manager",
+         "type": "github"
+       }
+     },
++    "hyprcursor": {
++      "inputs": {
++        "hyprlang": "hyprlang",
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1711466786,
++        "narHash": "sha256-sArxGyUBiCA1in+q6t0QqT+ZJiZ1PyBp7cNPKLmREM0=",
++        "owner": "hyprwm",
++        "repo": "hyprcursor",
++        "rev": "d3876f34779cc03ee51e4aafc0d00a4f187c7544",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprcursor",
++        "type": "github"
++      }
++    },
++    "hyprland": {
++      "inputs": {
++        "hyprcursor": "hyprcursor",
++        "hyprland-protocols": "hyprland-protocols",
++        "hyprlang": "hyprlang_2",
++        "nixpkgs": [
++          "nixpkgs"
++        ],
++        "systems": "systems_2",
++        "wlroots": "wlroots",
++        "xdph": "xdph"
++      },
++      "locked": {
++        "lastModified": 1711768162,
++        "narHash": "sha256-TFXPKrAwobDQ13TyBwrc2W81RRisAG338CgNO7bLGuQ=",
++        "owner": "hyprwm",
++        "repo": "hyprland",
++        "rev": "6fb8f502050c269597636c3b0bfcf046f7f6a947",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprland",
++        "type": "github"
++      }
++    },
++    "hyprland-protocols": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1691753796,
++        "narHash": "sha256-zOEwiWoXk3j3+EoF3ySUJmberFewWlagvewDRuWYAso=",
++        "owner": "hyprwm",
++        "repo": "hyprland-protocols",
++        "rev": "0c2ce70625cb30aef199cb388f99e19a61a6ce03",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprland-protocols",
++        "type": "github"
++      }
++    },
++    "hyprlang": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "hyprcursor",
++          "nixpkgs"
++        ],
++        "systems": "systems"
++      },
++      "locked": {
++        "lastModified": 1709914708,
++        "narHash": "sha256-bR4o3mynoTa1Wi4ZTjbnsZ6iqVcPGriXp56bZh5UFTk=",
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "rev": "a685493fdbeec01ca8ccdf1f3655c044a8ce2fe2",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "type": "github"
++      }
++    },
++    "hyprlang_2": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1711250455,
++        "narHash": "sha256-LSq1ZsTpeD7xsqvlsepDEelWRDtAhqwetp6PusHXJRo=",
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "rev": "b3e430f81f3364c5dd1a3cc9995706a4799eb3fa",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "type": "github"
++      }
++    },
+     "nixpkgs": {
+       "locked": {
+-        "lastModified": 1710951922,
+-        "narHash": "sha256-FOOBJ3DQenLpTNdxMHR2CpGZmYuctb92gF0lpiirZ30=",
++        "lastModified": 1711163522,
++        "narHash": "sha256-YN/Ciidm+A0fmJPWlHBGvVkcarYWSC+s3NTPk/P+q3c=",
+         "owner": "nixos",
+         "repo": "nixpkgs",
+-        "rev": "f091af045dff8347d66d186a62d42aceff159456",
++        "rev": "44d0940ea560dee511026a53f0e2e2cde489b4d4",
+         "type": "github"
+       },
+       "original": {
+         "owner": "nixos",
+-        "ref": "nixos-23.11",
++        "ref": "nixos-unstable",
+         "repo": "nixpkgs",
+         "type": "github"
+       }
+@@ -40,8 +165,91 @@
+     "root": {
+       "inputs": {
+         "home-manager": "home-manager",
++        "hyprland": "hyprland",
+         "nixpkgs": "nixpkgs"
+       }
++    },
++    "systems": {
++      "locked": {
++        "lastModified": 1689347949,
++        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "type": "github"
++      }
++    },
++    "systems_2": {
++      "locked": {
++        "lastModified": 1689347949,
++        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "type": "github"
++      }
++    },
++    "wlroots": {
++      "flake": false,
++      "locked": {
++        "host": "gitlab.freedesktop.org",
++        "lastModified": 1709983277,
++        "narHash": "sha256-wXWIJLd4F2JZeMaihWVDW/yYXCLEC8OpeNJZg9a9ly8=",
++        "owner": "wlroots",
++        "repo": "wlroots",
++        "rev": "50eae512d9cecbf0b3b1898bb1f0b40fa05fe19b",
++        "type": "gitlab"
++      },
++      "original": {
++        "host": "gitlab.freedesktop.org",
++        "owner": "wlroots",
++        "repo": "wlroots",
++        "rev": "50eae512d9cecbf0b3b1898bb1f0b40fa05fe19b",
++        "type": "gitlab"
++      }
++    },
++    "xdph": {
++      "inputs": {
++        "hyprland-protocols": [
++          "hyprland",
++          "hyprland-protocols"
++        ],
++        "hyprlang": [
++          "hyprland",
++          "hyprlang"
++        ],
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1709299639,
++        "narHash": "sha256-jYqJM5khksLIbqSxCLUUcqEgI+O2LdlSlcMEBs39CAU=",
++        "owner": "hyprwm",
++        "repo": "xdg-desktop-portal-hyprland",
++        "rev": "2d2fb547178ec025da643db57d40a971507b82fe",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "xdg-desktop-portal-hyprland",
++        "type": "github"
++      }
+     }
+   },
+   "root": "root",
+diff --git a/flake.nix b/flake.nix
+index 2c619a5..8cf7391 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -1,12 +1,18 @@
+ {
+-  description = "My personal Nix Config";
++  description = "My personal NixOS Config";
+ 
+   inputs = {
+-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
++    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+ 
+-    # Home manager
+-    home-manager.url = "github:nix-community/home-manager/release-23.11";
+-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
++    home-manager = {
++      url = "github:nix-community/home-manager/master";
++      inputs.nixpkgs.follows = "nixpkgs";
++    };
++
++    hyprland = {
++      url = "github:hyprwm/hyprland";
++      inputs.nixpkgs.follows = "nixpkgs";
++    };
+   };
+ 
+   outputs =
+@@ -24,18 +30,16 @@
+       nixosConfigurations = {
+         Nixbook = nixpkgs.lib.nixosSystem {
+           specialArgs = { inherit inputs outputs; };
+-          # > Our main nixos configuration file <
+-          modules = [ ./nixos/configuration.nix ];
++          modules = [ ./hosts/Nixbook ];
+         };
+       };
+ 
+-      # Standalone home-manager configuration entrypoint
+       # Available through 'home-manager switch --flake .#Nixbook@thiago'
+       homeConfigurations = {
+         "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
+           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+           extraSpecialArgs = { inherit inputs outputs; };
+-          # > Main home-manager configuration file <
++
+           modules = [ ./home-manager/home.nix ];
+         };
+       };
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 90e14ce..e7f9e32 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -38,40 +38,67 @@
+   home = {
+     username = "thiago";
+     homeDirectory = "/home/thiago";
++    packages = with pkgs;[
++        steam
++        nordic
++        sysbench
++        firefox
++        obsidian
++        whatsapp-for-linux
++        inkscape
++        blender
++        fira-code
++        waybar
++        kitty
++    ];
+   };
+ 
+-  # NEOVIM
+-  programs.neovim = {
+-    enable = true;
+-    defaultEditor = true;
+-    viAlias = true;
+-    vimAlias = true;
+-    vimdiffAlias = true;
+-  };
+-  #GIT
+-  programs.git = {
+-    enable = true;
+-  };
+ 
+-  #VS CODE
+-  programs.vscode = {
+-    enable = true;
+-    package = pkgs.vscode;
+-    extensions = with pkgs.vscode-extensions; [
+-      bbenoist.nix
+-      jnoortheen.nix-ide
+-      arcticicestudio.nord-visual-studio-code
+-    ];
+-    userSettings = {
+-      "workbench.colorTheme" = "Nord";
+-      "terminal.integrated.fontFamily" = "Hack";
++
++  programs = {
++    # NEOVIM
++    neovim = {
++      enable = true;
++      defaultEditor = true;
++      viAlias = true;
++      vimAlias = true;
++      vimdiffAlias = true;
++    };
++
++    #GIT
++    git = {
++      enable = true;
++      lfs.enable = true;
++      userEmail = "sposito.thiago@gmail.com";
++      userName = "Thiago Sposito";
+     };
++
++    #VS CODE
++    vscode = {
++      enable = true;
++      package = pkgs.vscode;
++      extensions = with pkgs.vscode-extensions; [
++        eamodio.gitlens
++        bbenoist.nix
++        jnoortheen.nix-ide
++        arcticicestudio.nord-visual-studio-code
++      ];
++
++
++      userSettings = {
++        "user.colorTheme" = "Nord";
++        "workbench.colorTheme" = "Nord";
++        "terminal.integrated.fontFamily" = "Hack";
++      };
++    };
++
++    home-manager.enable = true;
+   };
+ 
+-  programs.home-manager.enable = true;
++
+   # Nicely reload system units when changing configs
+   systemd.user.startServices = "sd-switch";
+ 
+-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
++
+   home.stateVersion = "23.11";
+ }
+diff --git a/hosts/Nixbook/apple.nix b/hosts/Nixbook/apple.nix
+new file mode 100644
+index 0000000..3866e7e
+--- /dev/null
++++ b/hosts/Nixbook/apple.nix
+@@ -0,0 +1,16 @@
++{ config, lib, pkgs, ... }:
++
++{
++  boot.kernelParams = [
++    "hid_apple.iso_layout=0"
++  ];
++  powerManagement = {
++    cpuFreqGovernor = "schedutil";
++    powerUpCommands = lib.mkBefore "${pkgs.kmod}/bin/modprobe brcmfmac";
++    powerDownCommands = lib.mkBefore "${pkgs.kmod}/bin/rmmod brcmfmac";
++  };
++  hardware.facetimehd.enable = lib.mkDefault
++    (config.nixpkgs.config.allowUnfree or false);
++
++  # services.mbpfan.enable = lib.mkDefault true;
++}
+diff --git a/hosts/Nixbook/default.nix b/hosts/Nixbook/default.nix
+new file mode 100644
+index 0000000..9418cc7
+--- /dev/null
++++ b/hosts/Nixbook/default.nix
+@@ -0,0 +1,88 @@
++# This replaces /etc/nixos/configuration.nix)
++
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++
++  imports = [
++    ./hardware-configuration.nix
++    ./apple.nix
++    ../common/default.nix
++  ];
++
++
++
++  networking.hostName = "Nixbook";
++
++  programs.hyprland = {
++    enable = true;
++  };
++
++
++  environment.sessionVariables.NIXOS_OZONE_WL = "1";
++
++  services.xserver = {
++    displayManager.sddm.wayland.enable = true;
++    enable = true;
++    libinput = {
++      enable = true;
++      touchpad.clickMethod = "clickfinger";
++    };
++  };
++
++  environment.systemPackages = with pkgs; [
++    wget
++    git
++    exfat
++    neovim
++    nil
++    nixpkgs-fmt
++    home-manager
++    rclone
++    gcsfuse
++    hwinfo
++    libinput
++  ];
++
++  users.users = {
++    thiago = {
++      isNormalUser = true;
++      description = "Thiago Sposito";
++      extraGroups = [ "networkmanager" "wheel" ];
++
++      packages = with pkgs; [
++        steam
++        nordic
++        nmap
++        vim
++        vscode
++        neovim
++        sysbench
++        firefox
++        obsidian
++        whatsapp-for-linux
++        inkscape
++        blender
++        lapce
++        fira-code
++        waybar
++        kitty
++      ];
++    };
++  };
++
++  services.openssh = {
++    enable = true;
++    settings = {
++      # Forbid root login through SSH.
++      PermitRootLogin = "no";
++      # Use keys only. Remove if you want to SSH using password (not recommended)
++      PasswordAuthentication = false;
++    };
++  };
++
++  system.stateVersion = "23.11";
++}
+diff --git a/nixos/hardware-configuration.nix b/hosts/Nixbook/hardware-configuration.nix
+similarity index 87%
+rename from nixos/hardware-configuration.nix
+rename to hosts/Nixbook/hardware-configuration.nix
+index bea3d9b..393ff56 100644
+--- a/nixos/hardware-configuration.nix
++++ b/hosts/Nixbook/hardware-configuration.nix
+@@ -5,7 +5,8 @@
+ 
+ {
+   imports =
+-    [ (modulesPath + "/hardware/network/broadcom-43xx.nix")
++    [
++      (modulesPath + "/hardware/network/broadcom-43xx.nix")
+       (modulesPath + "/installer/scan/not-detected.nix")
+     ];
+ 
+@@ -15,12 +16,14 @@
+   boot.extraModulePackages = [ ];
+ 
+   fileSystems."/" =
+-    { device = "/dev/disk/by-uuid/4b823fcd-b13b-43ab-ae7f-5de432a6a980";
++    {
++      device = "/dev/disk/by-uuid/4b823fcd-b13b-43ab-ae7f-5de432a6a980";
+       fsType = "ext4";
+     };
+ 
+   fileSystems."/boot" =
+-    { device = "/dev/disk/by-uuid/67E3-17ED";
++    {
++      device = "/dev/disk/by-uuid/67E3-17ED";
+       fsType = "vfat";
+     };
+ 
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+new file mode 100644
+index 0000000..a22be73
+--- /dev/null
++++ b/hosts/common/default.nix
+@@ -0,0 +1,38 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++
++  imports = [ ./users/thiago/default.nix ];
++
++  boot.loader.systemd-boot.enable = true;
++  networking.networkmanager.enable = true;
++  nixpkgs.config.allowUnfree = true;
++  time.timeZone = "America/Sao_Paulo";
++
++  # This will add each flake input as a registry to make nix3 commands consistent with your flake
++  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
++
++  # This will additionally add your inputs to the system's legacy channels
++  # Making legacy nix commands consistent as well, awesome!
++  nix.nixPath = [ "/etc/nix/path" ];
++  environment.etc =
++    lib.mapAttrs'
++      (name: value: {
++        name = "nix/path/${name}";
++        value.source = value.flake;
++      })
++      config.nix.registry;
++
++  nix.settings = {
++    # Enable flakes and new 'nix' command
++    experimental-features = "nix-command flakes";
++    # Deduplicate and optimize nix store
++    auto-optimise-store = true;
++  };
++
++
++
++}
+diff --git a/hosts/common/users/thiago/default.nix b/hosts/common/users/thiago/default.nix
+new file mode 100644
+index 0000000..ba7d1c2
+--- /dev/null
++++ b/hosts/common/users/thiago/default.nix
+@@ -0,0 +1,34 @@
++{ pkgs, config, ... }:
++let ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
++in
++{
++  users.users.thiago = {
++    isNormalUser = true;
++    extraGroups = ["networkmanager" "wheel" ]
++    ++ ifTheyExist [
++      "minecraft"
++      "network"
++      "wireshark"
++      "i2c"
++      "mysql"
++      "docker"
++      "podman"
++      "git"
++      "libvirtd"
++      "deluge"
++    ];
++
++    # openssh.authorizedKeys.keys = [ (builtins.readFile ../../../../home/misterio/ssh.pub) ];
++    # hashedPasswordFile = config.sops.secrets.misterio-password.path;
++    packages = [ pkgs.home-manager ];
++  };
++
++  # sops.secrets.misterio-password = {
++  #   sopsFile = ../../secrets.yaml;
++  #   neededForUsers = true;
++  # };
++
++  # home-manager.users.misterio = import ../../../../home/misterio/${config.networking.hostName}.nix;
++
++  # security.pam.services = { swaylock = { }; };
++}
+diff --git a/nixos/configuration.nix b/nixos/configuration.nix
+deleted file mode 100644
+index 35d17ea..0000000
+--- a/nixos/configuration.nix
++++ /dev/null
+@@ -1,94 +0,0 @@
+-# This replaces /etc/nixos/configuration.nix)
+-
+-{ inputs
+-, lib
+-, config
+-, pkgs
+-, ...
+-}: {
+-
+-  imports = [
+-    ./hardware-configuration.nix
+-  ];
+-
+-  nixpkgs = {
+-    # You can add overlays here
+-    overlays = [ ];
+-
+-    config.allowUnfree = true;
+-  };
+-
+-  networking.hostName = "Nixbook";
+-  networking.networkmanager.enable = true;
+-
+-  time.timeZone = "America/Sao_Paulo";
+-
+-  services.xserver.enable = true;
+-  services.xserver.displayManager.sddm.enable = true;
+-  services.xserver.desktopManager.plasma5.enable = true;
+-  services.xserver.libinput.enable = true;
+-
+-  # This will add each flake input as a registry
+-  # To make nix3 commands consistent with your flake
+-  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+-
+-  # This will additionally add your inputs to the system's legacy channels
+-  # Making legacy nix commands consistent as well, awesome!
+-  nix.nixPath = [ "/etc/nix/path" ];
+-  environment.etc =
+-    lib.mapAttrs'
+-      (name: value: {
+-        name = "nix/path/${name}";
+-        value.source = value.flake;
+-      })
+-      config.nix.registry;
+-
+-  nix.settings = {
+-    # Enable flakes and new 'nix' command
+-    experimental-features = "nix-command flakes";
+-    # Deduplicate and optimize nix store
+-    auto-optimise-store = true;
+-  };
+-
+-  # FIXME: Add the rest of your current configuration
+-  environment.systemPackages = with pkgs; [
+-    wget
+-    git
+-    exfat
+-    neovim
+-    nil
+-    nixpkgs-fmt
+-    home-manager
+-  ];
+-
+-  boot.loader.systemd-boot.enable = true;
+-
+-  users.users = {
+-    thiago = {
+-      isNormalUser = true;
+-      description = "Thiago Sposito";
+-      extraGroups = [ "networkmanager" "wheel" ];
+-      packages = with pkgs; [
+-        nmap
+-        vim
+-        vscode
+-        neovim
+-        sysbench
+-        firefox
+-      ];
+-    };
+-  };
+-
+-  services.openssh = {
+-    enable = true;
+-    settings = {
+-      # Forbid root login through SSH.
+-      PermitRootLogin = "no";
+-      # Use keys only. Remove if you want to SSH using password (not recommended)
+-      PasswordAuthentication = false;
+-    };
+-  };
+-
+-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+-  system.stateVersion = "23.11";
+-}
+========================================
+Commit: 577ff119f26d48e7b65672ae982eedee11c6c0f2
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index 87dc361..8cf7391 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -39,7 +39,7 @@
+         "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
+           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+           extraSpecialArgs = { inherit inputs outputs; };
+-          # > Main home-manager configuration file <
++
+           modules = [ ./home-manager/home.nix ];
+         };
+       };
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 2ffb65c..e7f9e32 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -38,48 +38,67 @@
+   home = {
+     username = "thiago";
+     homeDirectory = "/home/thiago";
++    packages = with pkgs;[
++        steam
++        nordic
++        sysbench
++        firefox
++        obsidian
++        whatsapp-for-linux
++        inkscape
++        blender
++        fira-code
++        waybar
++        kitty
++    ];
+   };
+ 
+-  # NEOVIM
+-  programs.neovim = {
+-    enable = true;
+-    defaultEditor = true;
+-    viAlias = true;
+-    vimAlias = true;
+-    vimdiffAlias = true;
+-  };
+-  #GIT
+ 
+-  programs.git = {
+-    enable = true;
+-    lfs.enable = true;
+-    	userEmail = "sposito.thiago@gmail.com";
+-    	userName = "Thiago Sposito";
+-  };
+ 
+-  #VS CODE
+-  programs.vscode = {
+-    enable = true;
+-    package = pkgs.vscode;
+-    extensions = with pkgs.vscode-extensions; [
+-      eamodio.gitlens
+-      bbenoist.nix
+-      jnoortheen.nix-ide
+-      arcticicestudio.nord-visual-studio-code
+-    ];
+-    userSettings = {
+-      "user.colorTheme" = "Nord";
+-      "workbench.colorTheme"="Nord";
+-      "terminal.integrated.fontFamily" = "Hack";
++  programs = {
++    # NEOVIM
++    neovim = {
++      enable = true;
++      defaultEditor = true;
++      viAlias = true;
++      vimAlias = true;
++      vimdiffAlias = true;
++    };
++
++    #GIT
++    git = {
++      enable = true;
++      lfs.enable = true;
++      userEmail = "sposito.thiago@gmail.com";
++      userName = "Thiago Sposito";
+     };
++
++    #VS CODE
++    vscode = {
++      enable = true;
++      package = pkgs.vscode;
++      extensions = with pkgs.vscode-extensions; [
++        eamodio.gitlens
++        bbenoist.nix
++        jnoortheen.nix-ide
++        arcticicestudio.nord-visual-studio-code
++      ];
++
++
++      userSettings = {
++        "user.colorTheme" = "Nord";
++        "workbench.colorTheme" = "Nord";
++        "terminal.integrated.fontFamily" = "Hack";
++      };
++    };
++
++    home-manager.enable = true;
+   };
+ 
+-  
+ 
+-  programs.home-manager.enable = true;
+   # Nicely reload system units when changing configs
+   systemd.user.startServices = "sd-switch";
+ 
+-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
++
+   home.stateVersion = "23.11";
+ }
+diff --git a/hosts/Nixbook/apple.nix b/hosts/Nixbook/apple.nix
+index baf654c..3866e7e 100644
+--- a/hosts/Nixbook/apple.nix
++++ b/hosts/Nixbook/apple.nix
+@@ -12,5 +12,5 @@
+   hardware.facetimehd.enable = lib.mkDefault
+     (config.nixpkgs.config.allowUnfree or false);
+ 
+-  services.mbpfan.enable = lib.mkDefault true;
++  # services.mbpfan.enable = lib.mkDefault true;
+ }
+diff --git a/hosts/Nixbook/default.nix b/hosts/Nixbook/default.nix
+index 7986f81..9418cc7 100644
+--- a/hosts/Nixbook/default.nix
++++ b/hosts/Nixbook/default.nix
+@@ -13,19 +13,15 @@
+     ../common/default.nix
+   ];
+ 
+-  nixpkgs = {
+-    overlays = [ ];
+-    config.allowUnfree = true;
+-  };
+ 
+-  networking.hostName = "Nixbook";
+ 
+-  time.timeZone = "America/Sao_Paulo";
++  networking.hostName = "Nixbook";
+ 
+   programs.hyprland = {
+     enable = true;
+   };
+ 
++
+   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+ 
+   services.xserver = {
+@@ -37,27 +33,6 @@
+     };
+   };
+ 
+-  # This will add each flake input as a registry to make nix3 commands consistent with your flake
+-  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+-
+-  # This will additionally add your inputs to the system's legacy channels
+-  # Making legacy nix commands consistent as well, awesome!
+-  nix.nixPath = [ "/etc/nix/path" ];
+-  environment.etc =
+-    lib.mapAttrs'
+-      (name: value: {
+-        name = "nix/path/${name}";
+-        value.source = value.flake;
+-      })
+-      config.nix.registry;
+-
+-  nix.settings = {
+-    # Enable flakes and new 'nix' command
+-    experimental-features = "nix-command flakes";
+-    # Deduplicate and optimize nix store
+-    auto-optimise-store = true;
+-  };
+-
+   environment.systemPackages = with pkgs; [
+     wget
+     git
+@@ -70,12 +45,8 @@
+     gcsfuse
+     hwinfo
+     libinput
+-    # kdePackages.qtwebengine
+-
+   ];
+ 
+-  boot.loader.systemd-boot.enable = true;
+-
+   users.users = {
+     thiago = {
+       isNormalUser = true;
+@@ -113,6 +84,5 @@
+     };
+   };
+ 
+-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+   system.stateVersion = "23.11";
+ }
+diff --git a/hosts/Nixbook/hardware-configuration.nix b/hosts/Nixbook/hardware-configuration.nix
+index bea3d9b..393ff56 100644
+--- a/hosts/Nixbook/hardware-configuration.nix
++++ b/hosts/Nixbook/hardware-configuration.nix
+@@ -5,7 +5,8 @@
+ 
+ {
+   imports =
+-    [ (modulesPath + "/hardware/network/broadcom-43xx.nix")
++    [
++      (modulesPath + "/hardware/network/broadcom-43xx.nix")
+       (modulesPath + "/installer/scan/not-detected.nix")
+     ];
+ 
+@@ -15,12 +16,14 @@
+   boot.extraModulePackages = [ ];
+ 
+   fileSystems."/" =
+-    { device = "/dev/disk/by-uuid/4b823fcd-b13b-43ab-ae7f-5de432a6a980";
++    {
++      device = "/dev/disk/by-uuid/4b823fcd-b13b-43ab-ae7f-5de432a6a980";
+       fsType = "ext4";
+     };
+ 
+   fileSystems."/boot" =
+-    { device = "/dev/disk/by-uuid/67E3-17ED";
++    {
++      device = "/dev/disk/by-uuid/67E3-17ED";
+       fsType = "vfat";
+     };
+ 
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+index 1016ba9..a22be73 100644
+--- a/hosts/common/default.nix
++++ b/hosts/common/default.nix
+@@ -4,6 +4,35 @@
+ , pkgs
+ , ...
+ }: {
+-  
++
++  imports = [ ./users/thiago/default.nix ];
++
++  boot.loader.systemd-boot.enable = true;
+   networking.networkmanager.enable = true;
++  nixpkgs.config.allowUnfree = true;
++  time.timeZone = "America/Sao_Paulo";
++
++  # This will add each flake input as a registry to make nix3 commands consistent with your flake
++  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
++
++  # This will additionally add your inputs to the system's legacy channels
++  # Making legacy nix commands consistent as well, awesome!
++  nix.nixPath = [ "/etc/nix/path" ];
++  environment.etc =
++    lib.mapAttrs'
++      (name: value: {
++        name = "nix/path/${name}";
++        value.source = value.flake;
++      })
++      config.nix.registry;
++
++  nix.settings = {
++    # Enable flakes and new 'nix' command
++    experimental-features = "nix-command flakes";
++    # Deduplicate and optimize nix store
++    auto-optimise-store = true;
++  };
++
++
++
+ }
+diff --git a/hosts/common/users/thiago/default.nix b/hosts/common/users/thiago/default.nix
+new file mode 100644
+index 0000000..ba7d1c2
+--- /dev/null
++++ b/hosts/common/users/thiago/default.nix
+@@ -0,0 +1,34 @@
++{ pkgs, config, ... }:
++let ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
++in
++{
++  users.users.thiago = {
++    isNormalUser = true;
++    extraGroups = ["networkmanager" "wheel" ]
++    ++ ifTheyExist [
++      "minecraft"
++      "network"
++      "wireshark"
++      "i2c"
++      "mysql"
++      "docker"
++      "podman"
++      "git"
++      "libvirtd"
++      "deluge"
++    ];
++
++    # openssh.authorizedKeys.keys = [ (builtins.readFile ../../../../home/misterio/ssh.pub) ];
++    # hashedPasswordFile = config.sops.secrets.misterio-password.path;
++    packages = [ pkgs.home-manager ];
++  };
++
++  # sops.secrets.misterio-password = {
++  #   sopsFile = ../../secrets.yaml;
++  #   neededForUsers = true;
++  # };
++
++  # home-manager.users.misterio = import ../../../../home/misterio/${config.networking.hostName}.nix;
++
++  # security.pam.services = { swaylock = { }; };
++}
+========================================
+Commit: 10212ee22d2f86fcab3c644c94afe99b97c6561c
+----------------------------------------
+diff --git a/hosts/Nixbook/default.nix b/hosts/Nixbook/default.nix
+index 918fed2..7986f81 100644
+--- a/hosts/Nixbook/default.nix
++++ b/hosts/Nixbook/default.nix
+@@ -10,6 +10,7 @@
+   imports = [
+     ./hardware-configuration.nix
+     ./apple.nix
++    ../common/default.nix
+   ];
+ 
+   nixpkgs = {
+@@ -18,17 +19,13 @@
+   };
+ 
+   networking.hostName = "Nixbook";
+-  networking.networkmanager.enable = true;
+ 
+   time.timeZone = "America/Sao_Paulo";
+-  # services.desktopManager.plasma6 = {
+-  #   enable = true;
+-  #   enableQt5Integration = true;
+-  # };
+ 
+-  programs.hyprland= {
++  programs.hyprland = {
+     enable = true;
+   };
++
+   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+ 
+   services.xserver = {
+@@ -36,16 +33,11 @@
+     enable = true;
+     libinput = {
+       enable = true;
+-      touchpad.tapping = false;
+       touchpad.clickMethod = "clickfinger";
+     };
+   };
+ 
+-  
+-  # services.xserver.desktopManager.plasma6.enable = true;
+-
+-  # This will add each flake input as a registry
+-  # To make nix3 commands consistent with your flake
++  # This will add each flake input as a registry to make nix3 commands consistent with your flake
+   nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+ 
+   # This will additionally add your inputs to the system's legacy channels
+@@ -89,7 +81,7 @@
+       isNormalUser = true;
+       description = "Thiago Sposito";
+       extraGroups = [ "networkmanager" "wheel" ];
+-      
++
+       packages = with pkgs; [
+         steam
+         nordic
+@@ -106,7 +98,7 @@
+         lapce
+         fira-code
+         waybar
+-	kitty
++        kitty
+       ];
+     };
+   };
+diff --git a/hosts/common/default.nix b/hosts/common/default.nix
+new file mode 100644
+index 0000000..1016ba9
+--- /dev/null
++++ b/hosts/common/default.nix
+@@ -0,0 +1,9 @@
++{ inputs
++, lib
++, config
++, pkgs
++, ...
++}: {
++  
++  networking.networkmanager.enable = true;
++}
+========================================
+Commit: f2745e8cea8c58ea91bb2092e2081faadc7ec67d
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index c5fce59..87dc361 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -2,13 +2,13 @@
+   description = "My personal NixOS Config";
+ 
+   inputs = {
+-    nixpkgs.url =  "github:nixos/nixpkgs/nixos-unstable";
+-    
++    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
++
+     home-manager = {
+       url = "github:nix-community/home-manager/master";
+       inputs.nixpkgs.follows = "nixpkgs";
+     };
+-    
++
+     hyprland = {
+       url = "github:hyprwm/hyprland";
+       inputs.nixpkgs.follows = "nixpkgs";
+@@ -30,15 +30,10 @@
+       nixosConfigurations = {
+         Nixbook = nixpkgs.lib.nixosSystem {
+           specialArgs = { inherit inputs outputs; };
+-          # > Our main nixos configuration file <
+-          modules = [
+-            ./nixos/configuration.nix 
+-    #        ./nixos/apple
+-          ];
++          modules = [ ./hosts/Nixbook ];
+         };
+       };
+ 
+-      # Standalone home-manager configuration entrypoint
+       # Available through 'home-manager switch --flake .#Nixbook@thiago'
+       homeConfigurations = {
+         "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
+diff --git a/home-manager/kde.nix b/home-manager/kde.nix
+deleted file mode 100644
+index c5107c5..0000000
+--- a/home-manager/kde.nix
++++ /dev/null
+@@ -1,89 +0,0 @@
+-{
+-  programs.plasma = {
+-    enable = true;
+-
+-    configFile = {
+-      "baloofilerc"."General"."dbVersion" = 2;
+-      "baloofilerc"."General"."exclude filters" = "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.venv,venv,core-dumps,lost+found";
+-      "baloofilerc"."General"."exclude filters version" = 8;
+-      "dolphinrc"."KFileDialog Settings"."Places Icons Auto-resize" = false;
+-      "dolphinrc"."KFileDialog Settings"."Places Icons Static Size" = 22;
+-      "dolphinrc"."PreviewSettings"."Plugins" = "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
+-      "kactivitymanagerdrc"."activities"."1878e52d-534b-4830-ba01-4b7ea30628f5" = "Default";
+-      "kactivitymanagerdrc"."main"."currentActivity" = "1878e52d-534b-4830-ba01-4b7ea30628f5";
+-      "kcminputrc"."Mouse"."X11LibInputXAccelProfileFlat" = true;
+-      "kcminputrc"."Mouse"."XLbInptNaturalScroll" = true;
+-      "kcminputrc"."Mouse"."cursorSize" = 36;
+-      "kcminputrc"."Mouse"."cursorTheme" = "Nordic-cursors";
+-      "kcminputrc"."Tmp"."update_info" = "delete_cursor_old_default_size.upd:DeleteCursorOldDefaultSize";
+-      "kded5rc"."Module-browserintegrationreminder"."autoload" = false;
+-      "kded5rc"."Module-device_automounter"."autoload" = false;
+-      "kded5rc"."PlasmaBrowserIntegration"."shownCount" = 4;
+-      "kdeglobals"."General"."AccentColor" = "3,36,53";
+-      "kdeglobals"."General"."LastUsedCustomAccentColor" = "3,36,53";
+-      "kdeglobals"."KDE"."ShowDeleteCommand" = false;
+-      "kdeglobals"."KDE"."widgetStyle" = "Windows";
+-      "kdeglobals"."KFileDialog Settings"."Allow Expansion" = false;
+-      "kdeglobals"."KFileDialog Settings"."Automatically select filename extension" = true;
+-      "kdeglobals"."KFileDialog Settings"."Breadcrumb Navigation" = true;
+-      "kdeglobals"."KFileDialog Settings"."Decoration position" = 2;
+-      "kdeglobals"."KFileDialog Settings"."LocationCombo Completionmode" = 5;
+-      "kdeglobals"."KFileDialog Settings"."PathCombo Completionmode" = 5;
+-      "kdeglobals"."KFileDialog Settings"."Show Bookmarks" = false;
+-      "kdeglobals"."KFileDialog Settings"."Show Full Path" = false;
+-      "kdeglobals"."KFileDialog Settings"."Show Inline Previews" = true;
+-      "kdeglobals"."KFileDialog Settings"."Show Preview" = false;
+-      "kdeglobals"."KFileDialog Settings"."Show Speedbar" = true;
+-      "kdeglobals"."KFileDialog Settings"."Show hidden files" = false;
+-      "kdeglobals"."KFileDialog Settings"."Sort by" = "Name";
+-      "kdeglobals"."KFileDialog Settings"."Sort directories first" = true;
+-      "kdeglobals"."KFileDialog Settings"."Sort hidden files last" = false;
+-      "kdeglobals"."KFileDialog Settings"."Sort reversed" = false;
+-      "kdeglobals"."KFileDialog Settings"."Speedbar Width" = 274;
+-      "kdeglobals"."KFileDialog Settings"."View Style" = "DetailTree";
+-      "kdeglobals"."KScreen"."ScaleFactor" = 2;
+-      "kdeglobals"."KScreen"."ScreenScaleFactors" = "eDP-1=2;DP-1=2;HDMI-1=2;DP-2=2;HDMI-2=2;";
+-      "kdeglobals"."PreviewSettings"."MaximumRemoteSize" = 0;
+-      "kdeglobals"."WM"."activeBackground" = "47,52,63";
+-      "kdeglobals"."WM"."activeBlend" = "47,52,63";
+-      "kdeglobals"."WM"."activeForeground" = "211,218,227";
+-      "kdeglobals"."WM"."inactiveBackground" = "47,52,63";
+-      "kdeglobals"."WM"."inactiveBlend" = "47,52,63";
+-      "kdeglobals"."WM"."inactiveForeground" = "102,106,115";
+-      "kgammarc"."ConfigFile"."use" = "kgammarc";
+-
+-
+-      "kiorc"."Confirmations"."ConfirmDelete" = true;
+-      "kiorc"."Confirmations"."ConfirmEmptyTrash" = true;
+-      "kiorc"."Confirmations"."ConfirmTrash" = false;
+-      "kiorc"."Executable scripts"."behaviourOnLaunch" = "alwaysAsk";
+-      "kservicemenurc"."Show"."compressfileitemaction" = true;
+-      "kservicemenurc"."Show"."extractfileitemaction" = true;
+-      "kservicemenurc"."Show"."forgetfileitemaction" = true;
+-      "kservicemenurc"."Show"."gdrivecontextmenuaction" = true;
+-      "kservicemenurc"."Show"."installFont" = true;
+-      "kservicemenurc"."Show"."kactivitymanagerd_fileitem_linking_plugin" = true;
+-      "kservicemenurc"."Show"."kio-admin" = true;
+-      "kservicemenurc"."Show"."makefileactions" = true;
+-      "kservicemenurc"."Show"."mountisoaction" = true;
+-      "kservicemenurc"."Show"."runInKonsole" = true;
+-      "kservicemenurc"."Show"."slideshowfileitemaction" = true;
+-      "kservicemenurc"."Show"."tagsfileitemaction" = true;
+-      "kservicemenurc"."Show"."wallpaperfileitemaction" = true;
+-      "kwalletrc"."Wallet"."First Use" = false;
+-      "kwinrc"."Compositing"."LatencyPolicy" = "ExtremelyLow";
+-      "kwinrc"."Desktops"."Id_1" = "91f29637-28f1-4901-bcd5-f7dbc2c22163";
+-      "kwinrc"."Desktops"."Number" = 1;
+-      "kwinrc"."Desktops"."Rows" = 1;
+-      "kwinrc"."Tiling"."padding" = 4;
+-      "kwinrc"."Tiling"."58ca410b-ce44-58d6-82b9-fefe44aba0e3"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+-      "kwinrc"."Tiling"."5fcec76b-b5a1-595d-b628-d07b34af817d"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+-      "kwinrc"."Tiling"."77222b47-39c5-58f7-9d7a-99a007e3887e"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+-      "kwinrc"."Tiling"."e5ae5f20-2c3a-5283-8766-6d6c5b928523"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+-      "kwinrc"."Xwayland"."Scale" = 1.5;
+-      "plasma-localerc"."Formats"."LANG" = "en_GB.UTF-8";
+-      "plasmarc"."Theme"."name" = "Nordic";
+-      "plasmarc"."Wallpapers"."usersWallpapers" = "/home/thiago/Pictures/u4e1g8ykj5911.jpg,/home/thiago/Downloads/wallpaperflare.com_wallpaper.jpg";
+-    };
+-  };
+-}
+diff --git a/nixos/apple/default.nix b/hosts/Nixbook/apple.nix
+similarity index 100%
+rename from nixos/apple/default.nix
+rename to hosts/Nixbook/apple.nix
+diff --git a/nixos/configuration.nix b/hosts/Nixbook/default.nix
+similarity index 89%
+rename from nixos/configuration.nix
+rename to hosts/Nixbook/default.nix
+index acedc19..918fed2 100644
+--- a/nixos/configuration.nix
++++ b/hosts/Nixbook/default.nix
+@@ -9,12 +9,11 @@
+ 
+   imports = [
+     ./hardware-configuration.nix
++    ./apple.nix
+   ];
+ 
+   nixpkgs = {
+-    # You can add overlays here
+     overlays = [ ];
+-
+     config.allowUnfree = true;
+   };
+ 
+@@ -22,7 +21,6 @@
+   networking.networkmanager.enable = true;
+ 
+   time.timeZone = "America/Sao_Paulo";
+-  services.xserver.displayManager.sddm.wayland.enable = true;
+   # services.desktopManager.plasma6 = {
+   #   enable = true;
+   #   enableQt5Integration = true;
+@@ -33,11 +31,18 @@
+   };
+   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+ 
+-  services.xserver.enable = true;
+-  services.xserver.displayManager.sddm.enable = true;
++  services.xserver = {
++    displayManager.sddm.wayland.enable = true;
++    enable = true;
++    libinput = {
++      enable = true;
++      touchpad.tapping = false;
++      touchpad.clickMethod = "clickfinger";
++    };
++  };
++
+   
+   # services.xserver.desktopManager.plasma6.enable = true;
+-  services.xserver.libinput.enable = true;
+ 
+   # This will add each flake input as a registry
+   # To make nix3 commands consistent with your flake
+@@ -71,7 +76,9 @@
+     home-manager
+     rclone
+     gcsfuse
+-    kdePackages.qtwebengine
++    hwinfo
++    libinput
++    # kdePackages.qtwebengine
+ 
+   ];
+ 
+diff --git a/nixos/hardware-configuration.nix b/hosts/Nixbook/hardware-configuration.nix
+similarity index 100%
+rename from nixos/hardware-configuration.nix
+rename to hosts/Nixbook/hardware-configuration.nix
+========================================
+Commit: 5469ebf27eea34b770003967485444b62951e6a4
+----------------------------------------
+diff --git a/flake.lock b/flake.lock
+index 16ee894..4c652e6 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -21,6 +21,131 @@
+         "type": "github"
+       }
+     },
++    "hyprcursor": {
++      "inputs": {
++        "hyprlang": "hyprlang",
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1711466786,
++        "narHash": "sha256-sArxGyUBiCA1in+q6t0QqT+ZJiZ1PyBp7cNPKLmREM0=",
++        "owner": "hyprwm",
++        "repo": "hyprcursor",
++        "rev": "d3876f34779cc03ee51e4aafc0d00a4f187c7544",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprcursor",
++        "type": "github"
++      }
++    },
++    "hyprland": {
++      "inputs": {
++        "hyprcursor": "hyprcursor",
++        "hyprland-protocols": "hyprland-protocols",
++        "hyprlang": "hyprlang_2",
++        "nixpkgs": [
++          "nixpkgs"
++        ],
++        "systems": "systems_2",
++        "wlroots": "wlroots",
++        "xdph": "xdph"
++      },
++      "locked": {
++        "lastModified": 1711768162,
++        "narHash": "sha256-TFXPKrAwobDQ13TyBwrc2W81RRisAG338CgNO7bLGuQ=",
++        "owner": "hyprwm",
++        "repo": "hyprland",
++        "rev": "6fb8f502050c269597636c3b0bfcf046f7f6a947",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprland",
++        "type": "github"
++      }
++    },
++    "hyprland-protocols": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1691753796,
++        "narHash": "sha256-zOEwiWoXk3j3+EoF3ySUJmberFewWlagvewDRuWYAso=",
++        "owner": "hyprwm",
++        "repo": "hyprland-protocols",
++        "rev": "0c2ce70625cb30aef199cb388f99e19a61a6ce03",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprland-protocols",
++        "type": "github"
++      }
++    },
++    "hyprlang": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "hyprcursor",
++          "nixpkgs"
++        ],
++        "systems": "systems"
++      },
++      "locked": {
++        "lastModified": 1709914708,
++        "narHash": "sha256-bR4o3mynoTa1Wi4ZTjbnsZ6iqVcPGriXp56bZh5UFTk=",
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "rev": "a685493fdbeec01ca8ccdf1f3655c044a8ce2fe2",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "type": "github"
++      }
++    },
++    "hyprlang_2": {
++      "inputs": {
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1711250455,
++        "narHash": "sha256-LSq1ZsTpeD7xsqvlsepDEelWRDtAhqwetp6PusHXJRo=",
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "rev": "b3e430f81f3364c5dd1a3cc9995706a4799eb3fa",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "hyprlang",
++        "type": "github"
++      }
++    },
+     "nixpkgs": {
+       "locked": {
+         "lastModified": 1711163522,
+@@ -40,8 +165,91 @@
+     "root": {
+       "inputs": {
+         "home-manager": "home-manager",
++        "hyprland": "hyprland",
+         "nixpkgs": "nixpkgs"
+       }
++    },
++    "systems": {
++      "locked": {
++        "lastModified": 1689347949,
++        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "type": "github"
++      }
++    },
++    "systems_2": {
++      "locked": {
++        "lastModified": 1689347949,
++        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nix-systems",
++        "repo": "default-linux",
++        "type": "github"
++      }
++    },
++    "wlroots": {
++      "flake": false,
++      "locked": {
++        "host": "gitlab.freedesktop.org",
++        "lastModified": 1709983277,
++        "narHash": "sha256-wXWIJLd4F2JZeMaihWVDW/yYXCLEC8OpeNJZg9a9ly8=",
++        "owner": "wlroots",
++        "repo": "wlroots",
++        "rev": "50eae512d9cecbf0b3b1898bb1f0b40fa05fe19b",
++        "type": "gitlab"
++      },
++      "original": {
++        "host": "gitlab.freedesktop.org",
++        "owner": "wlroots",
++        "repo": "wlroots",
++        "rev": "50eae512d9cecbf0b3b1898bb1f0b40fa05fe19b",
++        "type": "gitlab"
++      }
++    },
++    "xdph": {
++      "inputs": {
++        "hyprland-protocols": [
++          "hyprland",
++          "hyprland-protocols"
++        ],
++        "hyprlang": [
++          "hyprland",
++          "hyprlang"
++        ],
++        "nixpkgs": [
++          "hyprland",
++          "nixpkgs"
++        ],
++        "systems": [
++          "hyprland",
++          "systems"
++        ]
++      },
++      "locked": {
++        "lastModified": 1709299639,
++        "narHash": "sha256-jYqJM5khksLIbqSxCLUUcqEgI+O2LdlSlcMEBs39CAU=",
++        "owner": "hyprwm",
++        "repo": "xdg-desktop-portal-hyprland",
++        "rev": "2d2fb547178ec025da643db57d40a971507b82fe",
++        "type": "github"
++      },
++      "original": {
++        "owner": "hyprwm",
++        "repo": "xdg-desktop-portal-hyprland",
++        "type": "github"
++      }
+     }
+   },
+   "root": "root",
+========================================
+Commit: f44ef1d8e82e806eae98df3215581249f3d1e305
+----------------------------------------
+diff --git a/flake.lock b/flake.lock
+index f74e4c5..16ee894 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -21,22 +21,6 @@
+         "type": "github"
+       }
+     },
+-    "nixos-hardware": {
+-      "locked": {
+-        "lastModified": 1711274671,
+-        "narHash": "sha256-19KQXya5VERUXOdeEJJN+zOqtvuE6MV3qTk9Gr4J9Uo=",
+-        "owner": "NixOS",
+-        "repo": "nixos-hardware",
+-        "rev": "7559df1e4af972d5f1de87975b5ef6a8d7559db2",
+-        "type": "github"
+-      },
+-      "original": {
+-        "owner": "NixOS",
+-        "ref": "master",
+-        "repo": "nixos-hardware",
+-        "type": "github"
+-      }
+-    },
+     "nixpkgs": {
+       "locked": {
+         "lastModified": 1711163522,
+@@ -56,7 +40,6 @@
+     "root": {
+       "inputs": {
+         "home-manager": "home-manager",
+-        "nixos-hardware": "nixos-hardware",
+         "nixpkgs": "nixpkgs"
+       }
+     }
+diff --git a/flake.nix b/flake.nix
+index 95142dc..c5fce59 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -1,12 +1,18 @@
+ {
+-  description = "My personal Nix Config";
++  description = "My personal NixOS Config";
+ 
+   inputs = {
+     nixpkgs.url =  "github:nixos/nixpkgs/nixos-unstable";
+-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+-    # Home manager
+-    home-manager.url = "github:nix-community/home-manager/master";
+-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
++    
++    home-manager = {
++      url = "github:nix-community/home-manager/master";
++      inputs.nixpkgs.follows = "nixpkgs";
++    };
++    
++    hyprland = {
++      url = "github:hyprwm/hyprland";
++      inputs.nixpkgs.follows = "nixpkgs";
++    };
+   };
+ 
+   outputs =
+@@ -25,7 +31,10 @@
+         Nixbook = nixpkgs.lib.nixosSystem {
+           specialArgs = { inherit inputs outputs; };
+           # > Our main nixos configuration file <
+-          modules = [ ./nixos/configuration.nix ];
++          modules = [
++            ./nixos/configuration.nix 
++    #        ./nixos/apple
++          ];
+         };
+       };
+ 
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 01deb6a..2ffb65c 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -49,9 +49,12 @@
+     vimdiffAlias = true;
+   };
+   #GIT
++
+   programs.git = {
+     enable = true;
+     lfs.enable = true;
++    	userEmail = "sposito.thiago@gmail.com";
++    	userName = "Thiago Sposito";
+   };
+ 
+   #VS CODE
+diff --git a/home-manager/kde.nix b/home-manager/kde.nix
+new file mode 100644
+index 0000000..c5107c5
+--- /dev/null
++++ b/home-manager/kde.nix
+@@ -0,0 +1,89 @@
++{
++  programs.plasma = {
++    enable = true;
++
++    configFile = {
++      "baloofilerc"."General"."dbVersion" = 2;
++      "baloofilerc"."General"."exclude filters" = "*~,*.part,*.o,*.la,*.lo,*.loT,*.moc,moc_*.cpp,qrc_*.cpp,ui_*.h,cmake_install.cmake,CMakeCache.txt,CTestTestfile.cmake,libtool,config.status,confdefs.h,autom4te,conftest,confstat,Makefile.am,*.gcode,.ninja_deps,.ninja_log,build.ninja,*.csproj,*.m4,*.rej,*.gmo,*.pc,*.omf,*.aux,*.tmp,*.po,*.vm*,*.nvram,*.rcore,*.swp,*.swap,lzo,litmain.sh,*.orig,.histfile.*,.xsession-errors*,*.map,*.so,*.a,*.db,*.qrc,*.ini,*.init,*.img,*.vdi,*.vbox*,vbox.log,*.qcow2,*.vmdk,*.vhd,*.vhdx,*.sql,*.sql.gz,*.ytdl,*.class,*.pyc,*.pyo,*.elc,*.qmlc,*.jsc,*.fastq,*.fq,*.gb,*.fasta,*.fna,*.gbff,*.faa,po,CVS,.svn,.git,_darcs,.bzr,.hg,CMakeFiles,CMakeTmp,CMakeTmpQmake,.moc,.obj,.pch,.uic,.npm,.yarn,.yarn-cache,__pycache__,node_modules,node_packages,nbproject,.venv,venv,core-dumps,lost+found";
++      "baloofilerc"."General"."exclude filters version" = 8;
++      "dolphinrc"."KFileDialog Settings"."Places Icons Auto-resize" = false;
++      "dolphinrc"."KFileDialog Settings"."Places Icons Static Size" = 22;
++      "dolphinrc"."PreviewSettings"."Plugins" = "appimagethumbnail,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,mobithumbnail,opendocumentthumbnail,gsthumbnail,rawthumbnail,svgthumbnail,ffmpegthumbs";
++      "kactivitymanagerdrc"."activities"."1878e52d-534b-4830-ba01-4b7ea30628f5" = "Default";
++      "kactivitymanagerdrc"."main"."currentActivity" = "1878e52d-534b-4830-ba01-4b7ea30628f5";
++      "kcminputrc"."Mouse"."X11LibInputXAccelProfileFlat" = true;
++      "kcminputrc"."Mouse"."XLbInptNaturalScroll" = true;
++      "kcminputrc"."Mouse"."cursorSize" = 36;
++      "kcminputrc"."Mouse"."cursorTheme" = "Nordic-cursors";
++      "kcminputrc"."Tmp"."update_info" = "delete_cursor_old_default_size.upd:DeleteCursorOldDefaultSize";
++      "kded5rc"."Module-browserintegrationreminder"."autoload" = false;
++      "kded5rc"."Module-device_automounter"."autoload" = false;
++      "kded5rc"."PlasmaBrowserIntegration"."shownCount" = 4;
++      "kdeglobals"."General"."AccentColor" = "3,36,53";
++      "kdeglobals"."General"."LastUsedCustomAccentColor" = "3,36,53";
++      "kdeglobals"."KDE"."ShowDeleteCommand" = false;
++      "kdeglobals"."KDE"."widgetStyle" = "Windows";
++      "kdeglobals"."KFileDialog Settings"."Allow Expansion" = false;
++      "kdeglobals"."KFileDialog Settings"."Automatically select filename extension" = true;
++      "kdeglobals"."KFileDialog Settings"."Breadcrumb Navigation" = true;
++      "kdeglobals"."KFileDialog Settings"."Decoration position" = 2;
++      "kdeglobals"."KFileDialog Settings"."LocationCombo Completionmode" = 5;
++      "kdeglobals"."KFileDialog Settings"."PathCombo Completionmode" = 5;
++      "kdeglobals"."KFileDialog Settings"."Show Bookmarks" = false;
++      "kdeglobals"."KFileDialog Settings"."Show Full Path" = false;
++      "kdeglobals"."KFileDialog Settings"."Show Inline Previews" = true;
++      "kdeglobals"."KFileDialog Settings"."Show Preview" = false;
++      "kdeglobals"."KFileDialog Settings"."Show Speedbar" = true;
++      "kdeglobals"."KFileDialog Settings"."Show hidden files" = false;
++      "kdeglobals"."KFileDialog Settings"."Sort by" = "Name";
++      "kdeglobals"."KFileDialog Settings"."Sort directories first" = true;
++      "kdeglobals"."KFileDialog Settings"."Sort hidden files last" = false;
++      "kdeglobals"."KFileDialog Settings"."Sort reversed" = false;
++      "kdeglobals"."KFileDialog Settings"."Speedbar Width" = 274;
++      "kdeglobals"."KFileDialog Settings"."View Style" = "DetailTree";
++      "kdeglobals"."KScreen"."ScaleFactor" = 2;
++      "kdeglobals"."KScreen"."ScreenScaleFactors" = "eDP-1=2;DP-1=2;HDMI-1=2;DP-2=2;HDMI-2=2;";
++      "kdeglobals"."PreviewSettings"."MaximumRemoteSize" = 0;
++      "kdeglobals"."WM"."activeBackground" = "47,52,63";
++      "kdeglobals"."WM"."activeBlend" = "47,52,63";
++      "kdeglobals"."WM"."activeForeground" = "211,218,227";
++      "kdeglobals"."WM"."inactiveBackground" = "47,52,63";
++      "kdeglobals"."WM"."inactiveBlend" = "47,52,63";
++      "kdeglobals"."WM"."inactiveForeground" = "102,106,115";
++      "kgammarc"."ConfigFile"."use" = "kgammarc";
++
++
++      "kiorc"."Confirmations"."ConfirmDelete" = true;
++      "kiorc"."Confirmations"."ConfirmEmptyTrash" = true;
++      "kiorc"."Confirmations"."ConfirmTrash" = false;
++      "kiorc"."Executable scripts"."behaviourOnLaunch" = "alwaysAsk";
++      "kservicemenurc"."Show"."compressfileitemaction" = true;
++      "kservicemenurc"."Show"."extractfileitemaction" = true;
++      "kservicemenurc"."Show"."forgetfileitemaction" = true;
++      "kservicemenurc"."Show"."gdrivecontextmenuaction" = true;
++      "kservicemenurc"."Show"."installFont" = true;
++      "kservicemenurc"."Show"."kactivitymanagerd_fileitem_linking_plugin" = true;
++      "kservicemenurc"."Show"."kio-admin" = true;
++      "kservicemenurc"."Show"."makefileactions" = true;
++      "kservicemenurc"."Show"."mountisoaction" = true;
++      "kservicemenurc"."Show"."runInKonsole" = true;
++      "kservicemenurc"."Show"."slideshowfileitemaction" = true;
++      "kservicemenurc"."Show"."tagsfileitemaction" = true;
++      "kservicemenurc"."Show"."wallpaperfileitemaction" = true;
++      "kwalletrc"."Wallet"."First Use" = false;
++      "kwinrc"."Compositing"."LatencyPolicy" = "ExtremelyLow";
++      "kwinrc"."Desktops"."Id_1" = "91f29637-28f1-4901-bcd5-f7dbc2c22163";
++      "kwinrc"."Desktops"."Number" = 1;
++      "kwinrc"."Desktops"."Rows" = 1;
++      "kwinrc"."Tiling"."padding" = 4;
++      "kwinrc"."Tiling"."58ca410b-ce44-58d6-82b9-fefe44aba0e3"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
++      "kwinrc"."Tiling"."5fcec76b-b5a1-595d-b628-d07b34af817d"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
++      "kwinrc"."Tiling"."77222b47-39c5-58f7-9d7a-99a007e3887e"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
++      "kwinrc"."Tiling"."e5ae5f20-2c3a-5283-8766-6d6c5b928523"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
++      "kwinrc"."Xwayland"."Scale" = 1.5;
++      "plasma-localerc"."Formats"."LANG" = "en_GB.UTF-8";
++      "plasmarc"."Theme"."name" = "Nordic";
++      "plasmarc"."Wallpapers"."usersWallpapers" = "/home/thiago/Pictures/u4e1g8ykj5911.jpg,/home/thiago/Downloads/wallpaperflare.com_wallpaper.jpg";
++    };
++  };
++}
+diff --git a/nixos/apple/default.nix b/nixos/apple/default.nix
+new file mode 100644
+index 0000000..baf654c
+--- /dev/null
++++ b/nixos/apple/default.nix
+@@ -0,0 +1,16 @@
++{ config, lib, pkgs, ... }:
++
++{
++  boot.kernelParams = [
++    "hid_apple.iso_layout=0"
++  ];
++  powerManagement = {
++    cpuFreqGovernor = "schedutil";
++    powerUpCommands = lib.mkBefore "${pkgs.kmod}/bin/modprobe brcmfmac";
++    powerDownCommands = lib.mkBefore "${pkgs.kmod}/bin/rmmod brcmfmac";
++  };
++  hardware.facetimehd.enable = lib.mkDefault
++    (config.nixpkgs.config.allowUnfree or false);
++
++  services.mbpfan.enable = lib.mkDefault true;
++}
+diff --git a/nixos/configuration.nix b/nixos/configuration.nix
+index 02f6c94..acedc19 100644
+--- a/nixos/configuration.nix
++++ b/nixos/configuration.nix
+@@ -23,10 +23,15 @@
+ 
+   time.timeZone = "America/Sao_Paulo";
+   services.xserver.displayManager.sddm.wayland.enable = true;
+-  services.desktopManager.plasma6 = {
++  # services.desktopManager.plasma6 = {
++  #   enable = true;
++  #   enableQt5Integration = true;
++  # };
++
++  programs.hyprland= {
+     enable = true;
+-    enableQt5Integration = true;
+   };
++  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+ 
+   services.xserver.enable = true;
+   services.xserver.displayManager.sddm.enable = true;
+@@ -64,6 +69,10 @@
+     nil
+     nixpkgs-fmt
+     home-manager
++    rclone
++    gcsfuse
++    kdePackages.qtwebengine
++
+   ];
+ 
+   boot.loader.systemd-boot.enable = true;
+@@ -73,6 +82,7 @@
+       isNormalUser = true;
+       description = "Thiago Sposito";
+       extraGroups = [ "networkmanager" "wheel" ];
++      
+       packages = with pkgs; [
+         steam
+         nordic
+@@ -83,6 +93,13 @@
+         sysbench
+         firefox
+         obsidian
++        whatsapp-for-linux
++        inkscape
++        blender
++        lapce
++        fira-code
++        waybar
++	kitty
+       ];
+     };
+   };
+========================================
+Commit: 57b029f82d040539c8bb5a0eed24b495741d261a
+----------------------------------------
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..a834076
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,6 @@
++*.otf filter=lfs diff=lfs merge=lfs -text
++*.png filter=lfs diff=lfs merge=lfs -text
++*.jpg filter=lfs diff=lfs merge=lfs -text
++*.jpeg filter=lfs diff=lfs merge=lfs -text
++*.iso filter=lfs diff=lfs merge=lfs -text
++*.zip filter=lfs diff=lfs merge=lfs -text
+========================================
+Commit: 4aef0cc982e234111711c4e7726b2c66c057785b
+----------------------------------------
+diff --git a/flake.lock b/flake.lock
+index 12f1ed7..f74e4c5 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -7,32 +7,48 @@
+         ]
+       },
+       "locked": {
+-        "lastModified": 1710888565,
+-        "narHash": "sha256-s9Hi4RHhc6yut4EcYD50sZWRDKsugBJHSbON8KFwoTw=",
++        "lastModified": 1711133180,
++        "narHash": "sha256-WJOahf+6115+GMl3wUfURu8fszuNeJLv9qAWFQl3Vmo=",
+         "owner": "nix-community",
+         "repo": "home-manager",
+-        "rev": "f33900124c23c4eca5831b9b5eb32ea5894375ce",
++        "rev": "1c2c5e4cabba4c43504ef0f8cc3f3dfa284e2dbb",
+         "type": "github"
+       },
+       "original": {
+         "owner": "nix-community",
+-        "ref": "release-23.11",
++        "ref": "master",
+         "repo": "home-manager",
+         "type": "github"
+       }
+     },
++    "nixos-hardware": {
++      "locked": {
++        "lastModified": 1711274671,
++        "narHash": "sha256-19KQXya5VERUXOdeEJJN+zOqtvuE6MV3qTk9Gr4J9Uo=",
++        "owner": "NixOS",
++        "repo": "nixos-hardware",
++        "rev": "7559df1e4af972d5f1de87975b5ef6a8d7559db2",
++        "type": "github"
++      },
++      "original": {
++        "owner": "NixOS",
++        "ref": "master",
++        "repo": "nixos-hardware",
++        "type": "github"
++      }
++    },
+     "nixpkgs": {
+       "locked": {
+-        "lastModified": 1710951922,
+-        "narHash": "sha256-FOOBJ3DQenLpTNdxMHR2CpGZmYuctb92gF0lpiirZ30=",
++        "lastModified": 1711163522,
++        "narHash": "sha256-YN/Ciidm+A0fmJPWlHBGvVkcarYWSC+s3NTPk/P+q3c=",
+         "owner": "nixos",
+         "repo": "nixpkgs",
+-        "rev": "f091af045dff8347d66d186a62d42aceff159456",
++        "rev": "44d0940ea560dee511026a53f0e2e2cde489b4d4",
+         "type": "github"
+       },
+       "original": {
+         "owner": "nixos",
+-        "ref": "nixos-23.11",
++        "ref": "nixos-unstable",
+         "repo": "nixpkgs",
+         "type": "github"
+       }
+@@ -40,6 +56,7 @@
+     "root": {
+       "inputs": {
+         "home-manager": "home-manager",
++        "nixos-hardware": "nixos-hardware",
+         "nixpkgs": "nixpkgs"
+       }
+     }
+diff --git a/flake.nix b/flake.nix
+index 2c619a5..95142dc 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -2,10 +2,10 @@
+   description = "My personal Nix Config";
+ 
+   inputs = {
+-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+-
++    nixpkgs.url =  "github:nixos/nixpkgs/nixos-unstable";
++    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+     # Home manager
+-    home-manager.url = "github:nix-community/home-manager/release-23.11";
++    home-manager.url = "github:nix-community/home-manager/master";
+     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+   };
+ 
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 7ff1c8b..01deb6a 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -59,16 +59,20 @@
+     enable = true;
+     package = pkgs.vscode;
+     extensions = with pkgs.vscode-extensions; [
++      eamodio.gitlens
+       bbenoist.nix
+       jnoortheen.nix-ide
+       arcticicestudio.nord-visual-studio-code
+     ];
+     userSettings = {
+-      "workbench.colorTheme" = "Nord";
++      "user.colorTheme" = "Nord";
++      "workbench.colorTheme"="Nord";
+       "terminal.integrated.fontFamily" = "Hack";
+     };
+   };
+ 
++  
++
+   programs.home-manager.enable = true;
+   # Nicely reload system units when changing configs
+   systemd.user.startServices = "sd-switch";
+diff --git a/nixos/configuration.nix b/nixos/configuration.nix
+index 35d17ea..02f6c94 100644
+--- a/nixos/configuration.nix
++++ b/nixos/configuration.nix
+@@ -22,10 +22,16 @@
+   networking.networkmanager.enable = true;
+ 
+   time.timeZone = "America/Sao_Paulo";
++  services.xserver.displayManager.sddm.wayland.enable = true;
++  services.desktopManager.plasma6 = {
++    enable = true;
++    enableQt5Integration = true;
++  };
+ 
+   services.xserver.enable = true;
+   services.xserver.displayManager.sddm.enable = true;
+-  services.xserver.desktopManager.plasma5.enable = true;
++  
++  # services.xserver.desktopManager.plasma6.enable = true;
+   services.xserver.libinput.enable = true;
+ 
+   # This will add each flake input as a registry
+@@ -50,7 +56,6 @@
+     auto-optimise-store = true;
+   };
+ 
+-  # FIXME: Add the rest of your current configuration
+   environment.systemPackages = with pkgs; [
+     wget
+     git
+@@ -69,12 +74,15 @@
+       description = "Thiago Sposito";
+       extraGroups = [ "networkmanager" "wheel" ];
+       packages = with pkgs; [
++        steam
++        nordic
+         nmap
+         vim
+         vscode
+         neovim
+         sysbench
+         firefox
++        obsidian
+       ];
+     };
+   };
+========================================
+Commit: f3309262bdddae5d7377a19ee874caf33d90525d
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 90e14ce..7ff1c8b 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -51,6 +51,7 @@
+   #GIT
+   programs.git = {
+     enable = true;
++    lfs.enable = true;
+   };
+ 
+   #VS CODE
+========================================
+Commit: 08d4cfb8f0ea5961198d20838a7e4208628cc77b
+----------------------------------------
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 98d69f9..90e14ce 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -73,5 +73,5 @@
+   systemd.user.startServices = "sd-switch";
+ 
+   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+-  home.stateVersion = "23.05";
++  home.stateVersion = "23.11";
+ }
+diff --git a/nixos/configuration.nix b/nixos/configuration.nix
+index 584aee2..35d17ea 100644
+--- a/nixos/configuration.nix
++++ b/nixos/configuration.nix
+@@ -90,5 +90,5 @@
+   };
+ 
+   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+-  system.stateVersion = "23.05";
++  system.stateVersion = "23.11";
+ }
+========================================
+Commit: 9684b589655c1f697fe564337c6ca883eb6c7e43
+----------------------------------------
+diff --git a/flake.nix b/flake.nix
+index fa75b92..2c619a5 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -1,50 +1,43 @@
+ {
+-  description = "My nix config";
++  description = "My personal Nix Config";
+ 
+   inputs = {
+-    # Nixpkgs
+     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+ 
+     # Home manager
+     home-manager.url = "github:nix-community/home-manager/release-23.11";
+     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+-
+-    # TODO: Add any other flake you might need
+-    # hardware.url = "github:nixos/nixos-hardware";
+-
+-    # Shameless plug: looking for a way to nixify your themes and make
+-    # everything match nicely? Try nix-colors!
+-    # nix-colors.url = "github:misterio77/nix-colors";
+   };
+ 
+-  outputs = {
+-    self,
+-    nixpkgs,
+-    home-manager,
+-    ...
+-  } @ inputs: let
+-    inherit (self) outputs;
+-  in {
+-    # NixOS configuration entrypoint
+-    # Available through 'nixos-rebuild --flake .#your-hostname'
+-    nixosConfigurations = {      
+-      Nixbook = nixpkgs.lib.nixosSystem {
+-        specialArgs = {inherit inputs outputs;};
+-        # > Our main nixos configuration file <
+-        modules = [./nixos/configuration.nix];
++  outputs =
++    { self
++    , nixpkgs
++    , home-manager
++    , ...
++    } @ inputs:
++    let
++      inherit (self) outputs;
++    in
++    {
++      # NixOS configuration entrypoint
++      # Available through 'sudo nixos-rebuild switch --flake .#Nixbook'
++      nixosConfigurations = {
++        Nixbook = nixpkgs.lib.nixosSystem {
++          specialArgs = { inherit inputs outputs; };
++          # > Our main nixos configuration file <
++          modules = [ ./nixos/configuration.nix ];
++        };
+       };
+-    };
+ 
+-    # Standalone home-manager configuration entrypoint
+-    # Available through 'home-manager --flake .#your-username@your-hostname'
+-    homeConfigurations = {
+-      # FIXME replace with your username@hostname
+-      "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
+-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+-        extraSpecialArgs = {inherit inputs outputs;};
+-        # > Our main home-manager configuration file <
+-        modules = [./home-manager/home.nix];
++      # Standalone home-manager configuration entrypoint
++      # Available through 'home-manager switch --flake .#Nixbook@thiago'
++      homeConfigurations = {
++        "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
++          pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
++          extraSpecialArgs = { inherit inputs outputs; };
++          # > Main home-manager configuration file <
++          modules = [ ./home-manager/home.nix ];
++        };
+       };
+     };
+-  };
+ }
+diff --git a/home-manager/home.nix b/home-manager/home.nix
+index 75d4d02..98d69f9 100644
+--- a/home-manager/home.nix
++++ b/home-manager/home.nix
+@@ -1,15 +1,13 @@
+-# This is your home-manager configuration file
+-# Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
+-{
+-  inputs,
+-  lib,
+-  config,
+-  pkgs,
+-  ...
++# This replaces ~/.config/nixpkgs/home.nix)
++{ inputs
++, lib
++, config
++, pkgs
++, ...
+ }: {
+   # You can import other home-manager modules here
+   imports = [
+-    # If you want to use home-manager modules from other flakes (such as nix-colors):
++    # TODO: in the future I might want to use home-manager modules from other flakes
+     # inputs.nix-colors.homeManagerModule
+ 
+     # You can also split up your configuration and import pieces of it here:
+@@ -17,7 +15,7 @@
+   ];
+ 
+   nixpkgs = {
+-    # You can add overlays here
++
+     overlays = [
+       # If you want to use overlays exported from other flakes:
+       # neovim-nightly-overlay.overlays.default
+@@ -29,29 +27,48 @@
+       #   });
+       # })
+     ];
+-    # Configure your nixpkgs instance
++
+     config = {
+-      # Disable if you don't want unfree packages
+       allowUnfree = true;
+       # Workaround for https://github.com/nix-community/home-manager/issues/2942
+       allowUnfreePredicate = _: true;
+     };
+   };
+ 
+-  # TODO: Set your username
+   home = {
+     username = "thiago";
+     homeDirectory = "/home/thiago";
+   };
+ 
+-  # Add stuff for your user as you see fit:
+-  # programs.neovim.enable = true;
+-  # home.packages = with pkgs; [ steam ];
++  # NEOVIM
++  programs.neovim = {
++    enable = true;
++    defaultEditor = true;
++    viAlias = true;
++    vimAlias = true;
++    vimdiffAlias = true;
++  };
++  #GIT
++  programs.git = {
++    enable = true;
++  };
+ 
+-  # Enable home-manager and git
+-  programs.home-manager.enable = true;
+-  programs.git.enable = true;
++  #VS CODE
++  programs.vscode = {
++    enable = true;
++    package = pkgs.vscode;
++    extensions = with pkgs.vscode-extensions; [
++      bbenoist.nix
++      jnoortheen.nix-ide
++      arcticicestudio.nord-visual-studio-code
++    ];
++    userSettings = {
++      "workbench.colorTheme" = "Nord";
++      "terminal.integrated.fontFamily" = "Hack";
++    };
++  };
+ 
++  programs.home-manager.enable = true;
+   # Nicely reload system units when changing configs
+   systemd.user.startServices = "sd-switch";
+ 
+diff --git a/nixos/configuration.nix b/nixos/configuration.nix
+index c6e7f22..584aee2 100644
+--- a/nixos/configuration.nix
++++ b/nixos/configuration.nix
+@@ -1,38 +1,25 @@
+-# This is your system's configuration file.
+-# Use this to configure your system environment (it replaces /etc/nixos/configuration.nix)
+-{
+-  inputs,
+-  lib,
+-  config,
+-  pkgs,
+-  ...
++# This replaces /etc/nixos/configuration.nix)
++
++{ inputs
++, lib
++, config
++, pkgs
++, ...
+ }: {
+-  # You can import other NixOS modules here
++
+   imports = [
+     ./hardware-configuration.nix
+   ];
+-  
++
+   nixpkgs = {
+     # You can add overlays here
+-    overlays = [
+-      # If you want to use overlays exported from other flakes:
+-      # neovim-nightly-overlay.overlays.default
++    overlays = [ ];
+ 
+-      # Or define it inline, for example:
+-      # (final: prev: {
+-      #   hi = final.hello.overrideAttrs (oldAttrs: {
+-      #     patches = [ ./change-hello-to-hi.patch ];
+-      #   });
+-      # })
+-    ];
+-    
+-    config = {  
+-      allowUnfree = true;
+-    };
++    config.allowUnfree = true;
+   };
+-  
++
+   networking.hostName = "Nixbook";
+-  networking.networkmanager.enable = true; 
++  networking.networkmanager.enable = true;
+ 
+   time.timeZone = "America/Sao_Paulo";
+ 
+@@ -40,21 +27,21 @@
+   services.xserver.displayManager.sddm.enable = true;
+   services.xserver.desktopManager.plasma5.enable = true;
+   services.xserver.libinput.enable = true;
+-  
++
+   # This will add each flake input as a registry
+   # To make nix3 commands consistent with your flake
+-  nix.registry = (lib.mapAttrs (_: flake: {inherit flake;})) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
++  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+ 
+   # This will additionally add your inputs to the system's legacy channels
+   # Making legacy nix commands consistent as well, awesome!
+-  nix.nixPath = ["/etc/nix/path"];
++  nix.nixPath = [ "/etc/nix/path" ];
+   environment.etc =
+     lib.mapAttrs'
+-    (name: value: {
+-      name = "nix/path/${name}";
+-      value.source = value.flake;
+-    })
+-    config.nix.registry;
++      (name: value: {
++        name = "nix/path/${name}";
++        value.source = value.flake;
++      })
++      config.nix.registry;
+ 
+   nix.settings = {
+     # Enable flakes and new 'nix' command
+@@ -69,15 +56,13 @@
+     git
+     exfat
+     neovim
+-    nixd
+-
++    nil
++    nixpkgs-fmt
++    home-manager
+   ];
+ 
+-
+-  # TODO: This is just an example, be sure to use whatever bootloader you prefer
+   boot.loader.systemd-boot.enable = true;
+ 
+-  # TODO: Configure your system-wide user settings (groups, etc), add more users as needed.
+   users.users = {
+     thiago = {
+       isNormalUser = true;
+@@ -94,8 +79,6 @@
+     };
+   };
+ 
+-  # This setups a SSH server. Very important if you're setting up a headless system.
+-  # Feel free to remove if you don't need it.
+   services.openssh = {
+     enable = true;
+     settings = {
+========================================
+Commit: c4e9d5b954aa196d31ada5a8742e5793337e1b60
+----------------------------------------
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000..4fba50c
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,17 @@
++{
++    "nix.enableLanguageServer": true, // Enable LSP.
++    "nix.serverPath": "nil", // The path to the LSP server executable.
++  
++    "nix.serverSettings": {
++      // settings for 'nil' LSP
++      "nil": {
++        "diagnostics": {
++          "ignored": ["unused_binding", "unused_with"]
++        },
++        "formatting": {
++          "command": ["nixpkgs-fmt"]
++        }
++      }
++    },
++    "nix.formatterPath": "nixpkgs-fmt"   
++}
+\ No newline at end of file
+========================================
+Commit: 66e0cc35e3617cc05c06f4e36e51b5e027e28d02
+----------------------------------------
+No parent commit (initial commit)
+========================================
