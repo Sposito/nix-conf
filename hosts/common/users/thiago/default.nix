@@ -13,7 +13,9 @@ in
       "git"
       "libvirtd"
       "libvirt"
+      "video"
       "kvm"
+      "scanner"
     ];
 
     packages = [ pkgs.home-manager ];
