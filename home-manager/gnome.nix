@@ -22,6 +22,7 @@
         "dash-to-panel@jderose9.github.com"
         "sound-output-device-chooser@kgshank.net"
         "space-bar@luchrioh"
+        "Forge@forge-ext"
       ];
     };
   };
@@ -29,6 +30,7 @@
 
   home.packages = with pkgs; [
     gnomeExtensions.user-themes
+    gnomeExtensions.forge
     gnomeExtensions.tray-icons-reloaded
     gnomeExtensions.vitals
     gnomeExtensions.dash-to-panel

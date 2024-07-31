@@ -15,6 +15,8 @@
   environment.systemPackages = with pkgs; [
     mesa
     glxinfo
+    libepoxy
+    libglvnd
   ];
 
   hardware.nvidia = {
