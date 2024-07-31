@@ -19,7 +19,6 @@
       "telemetry.telemetryLevel" = "off";
       "gitlens.telemetry.enabled" = false;
       "user.colorTheme" = "Nord";
-      "workbench.colorTheme" = "Nord";
       "terminal.integrated.fontFamily" = "Hack";
       "nix.formatterPath" = "nixpkgs-fmt";
       "nix.enableLanguageServer" = true;
