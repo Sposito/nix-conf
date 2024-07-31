@@ -11,7 +11,7 @@
     ../common/network.nix
     ../common/screen.nix
     ../common/nvidia/default.nix
-    ../common/podman/default.nix
+    # ../common/podman/default.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -39,10 +39,12 @@
     LC_TELEPHONE = "pt_BR.UTF-8";
     LC_TIME = "pt_BR.UTF-8";
   };
-
+  services.flatpak.enable = true;
   environment.systemPackages = with pkgs; [
     wget
     python3
+    go
+    libgcc
     git
     exfat
     nil
@@ -58,7 +60,8 @@
     cudatoolkit
     blender
     darling-dmg
-    jetbrains.jdk
+    ocrmypdf
+    act
   ];
 
   programs.steam = {
@@ -96,7 +99,10 @@
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
+  hardware.sane.enable = true;
 
+
+  services.udev.packages = [ pkgs.utsushi ];
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -111,6 +117,11 @@
     enable = true;
     qemu.ovmf.enable = true;
   };
+  boot.kernelParams = [
+    "nvidia-drm.modeset=1"
+    "intel_iommu=on"
+    "iommu=pt"
+  ];
   # virtualisation.libvirtd = {
   #   enable = true;
   #   qemuOvmf = true;
