@@ -9,7 +9,7 @@
   imports = [
 
     ./gnome.nix
-    # ./vscode.nix
+     ./vscode.nix
     ./zsh.nix
     ./kitty.nix
     ./zig.nix
