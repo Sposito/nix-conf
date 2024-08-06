@@ -9,7 +9,6 @@ in
       "wireshark"
       "i2c"
       "docker"
-      "podman"
       "git"
       "libvirtd"
       "libvirt"

@@ -17,6 +17,7 @@
     glxinfo
     libepoxy
     libglvnd
+    nvidia-container-toolkit
   ];
 
   hardware.nvidia = {
