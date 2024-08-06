@@ -74,6 +74,7 @@
       lfs.enable = true;
       userEmail = "sposito.thiago@gmail.com";
       userName = "Thiago Sposito";
+      
     };
 
     home-manager.enable = true;
