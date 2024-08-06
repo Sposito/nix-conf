@@ -10,10 +10,10 @@
       enable = true;
       storageDriver = "btrfs";
       enableNvidia = true;
-      rootless = {
-        enable = true;
-        setSocketVariable = true;
-      };
+#      rootless = {
+ #       enable = true;
+  #      setSocketVariable = true;
+   #   };
       daemon.settings = {
         userland-proxy = false;
         experimental = true;
