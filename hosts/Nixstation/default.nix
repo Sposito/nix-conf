@@ -61,6 +61,8 @@
     darling-dmg
     ocrmypdf
     act
+    spice-vdagent
+    vmware-workstation
   ];
 
   programs.steam = {
@@ -110,12 +112,16 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
-
+  virtualisation.vmware.host.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
+  
   virtualisation.libvirtd = {
     enable = true;
     qemu.ovmf.enable = true;
+    qemu.package = pkgs.qemu_full;
   };
+
+
   boot.kernelParams = [
     "nvidia-drm.modeset=1"
     "intel_iommu=on"
