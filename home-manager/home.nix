@@ -3,13 +3,14 @@
 , lib
 , config
 , pkgs
+, vscode-extensions
 , ...
 }: {
+  
 
   imports = [
 
     ./gnome.nix
-     ./vscode.nix
     ./zsh.nix
     ./kitty.nix
     ./zig.nix
@@ -50,12 +51,10 @@
       fira-code
       nixpkgs-fmt
       rclone
-      lilipod
-      distrobox
       uget
       tor-browser
-      microsoft-edge
-      tor-browser
+      vscodium-fhs
+
       # blender
       # blender-bin  # Add blender-bin to the list of installed packages
     ];
@@ -75,7 +74,7 @@
       lfs.enable = true;
       userEmail = "sposito.thiago@gmail.com";
       userName = "Thiago Sposito";
-      
+
     };
 
     home-manager.enable = true;

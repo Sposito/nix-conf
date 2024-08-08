@@ -10,6 +10,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    vscode-extensions = {
+      url = "github:nix-community/nix-vscode-extensions";
+    };
+    flake-utils.follows = "vscode-extensions/flake-utils";
+    vs-extensions-pkgs.follows = "vscode-extensions/nixpkgs";
+
     hyprland = {
       url = "github:hyprwm/hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,6 +27,9 @@
     , nixpkgs
     , nixpkgs-unstable
     , home-manager
+    , vscode-extensions
+    , vs-extensions-pkgs
+    , flake-utils
     , ...
     } @ inputs:
     let
