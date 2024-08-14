@@ -1,12 +1,9 @@
 { pkgs, ... }:
 let
-
   treesitterWithGrammars = (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
     p.comment
-    p.css
     p.dockerfile
-    p.zsh
     p.gitattributes
     p.gitignore
     p.json
@@ -14,7 +11,7 @@ let
     p.make
     p.markdown
     p.nix
-    p.python
+    # p.python
     p.rust
     p.toml
     p.yaml
@@ -40,7 +37,6 @@ in
     package = pkgs.neovim;
     vimAlias = true;
     coc.enable = false;
-    withNodeJs = true;
 
     plugins = [
       treesitterWithGrammars
@@ -52,9 +48,9 @@ in
     recursive = true;
   };
 
-  home.file."./.config/nvim/lua/kidsan/init.lua".text = ''
-    require("kidsan.set")
-    require("kidsan.remap")
+  home.file."./.config/nvim/lua/thiago/init.lua".text = ''
+    require("thiago.set")
+    require("thiago.remap")
     vim.opt.runtimepath:append("${treesitter-parsers}")
   '';
 

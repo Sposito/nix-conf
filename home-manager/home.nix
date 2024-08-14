@@ -14,8 +14,8 @@
     ./zsh.nix
     ./kitty.nix
     ./zig.nix
-    ./jetbrains.nix
-    ./neovim~.nix
+    # ./jetbrains.nix
+    # ./neovim
   ];
 
   nixpkgs = {
@@ -30,11 +30,11 @@
         "steam"
         "steam-original"
         "steam-run"
-        "blender"
+      # "blender"
       ];
     };
   };
-~
+
   home = {
     username = "thiago";
     homeDirectory = "/home/thiago";
