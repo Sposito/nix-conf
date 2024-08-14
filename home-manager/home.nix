@@ -15,7 +15,7 @@
     ./kitty.nix
     ./zig.nix
     # ./jetbrains.nix
-    # ./neovim
+    ./neovim
   ];
 
   nixpkgs = {
