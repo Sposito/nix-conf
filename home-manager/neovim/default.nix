@@ -11,7 +11,6 @@ let
     p.make
     p.markdown
     p.nix
-    # p.python
     p.rust
     p.toml
     p.yaml
@@ -25,11 +24,7 @@ let
 in
 {
   home.packages = with pkgs; [
-    ripgrep
-    fd
     lua-language-server
-    rust-analyzer-unwrapped
-    black
   ];
 
   programs.neovim = {
