@@ -15,6 +15,7 @@
     ./kitty.nix
     ./zig.nix
     ./jetbrains.nix
+    ./neovim~.nix
   ];
 
   nixpkgs = {
@@ -33,7 +34,7 @@
       ];
     };
   };
-
+~
   home = {
     username = "thiago";
     homeDirectory = "/home/thiago";
@@ -53,7 +54,6 @@
       rclone
       uget
       tor-browser
-      vscodium-fhs
 
       # blender
       # blender-bin  # Add blender-bin to the list of installed packages
@@ -61,12 +61,10 @@
   };
 
   programs = {
-    neovim = {
-      enable = true;
-      defaultEditor = true;
-      viAlias = true;
-      vimAlias = true;
-      vimdiffAlias = true;
+
+    vscode = {
+      enable = false;
+      package = pkgs.vscodium.fhs;
     };
 
     git = {
