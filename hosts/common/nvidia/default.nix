@@ -6,7 +6,7 @@
     driSupport = true;
     driSupport32Bit = true;
   };
-
+  hardware.nvidia-container-toolkit.enable = true;
   services.xserver = {
     enable = true;
     videoDrivers = [ "nvidia" ];

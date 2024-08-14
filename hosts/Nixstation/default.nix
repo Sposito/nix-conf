@@ -57,11 +57,7 @@
     gnome3.gnome-session
     zsh
     cudatoolkit
-    blender
-    darling-dmg
-    ocrmypdf
     act
-    spice-vdagent
     vmware-workstation
   ];
 
