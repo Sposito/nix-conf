@@ -1,6 +1,12 @@
-{ pkgs, ... }:
+{inputs 
+, pkgs
+, nixpkgs-unstable
+, ... }:
+ 
+
 let
-  treesitterWithGrammars = (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+  unstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+  treesitterWithGrammars = (unstable.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
     p.comment
     p.dockerfile
@@ -11,25 +17,33 @@ let
     p.make
     p.markdown
     p.nix
+    p.python
     p.rust
     p.toml
     p.yaml
     p.zig
   ]));
 
-  treesitter-parsers = pkgs.symlinkJoin {
+
+  treesitter-parsers = unstable.symlinkJoin {
     name = "treesitter-parsers";
     paths = treesitterWithGrammars.dependencies;
   };
 in
 {
-  home.packages = with pkgs; [
-    lua-language-server
-  ];
+    home.packages = with unstable; [
+      ripgrep
+      fd
+      lua-language-server
+      rust-analyzer-unwrapped
+      black
+      luajit
+      luajitPackages.telescope-nvim
+    ];
 
   programs.neovim = {
     enable = true;
-    package = pkgs.neovim;
+    package = unstable.neovim-unwrapped;
     vimAlias = true;
     coc.enable = false;
 
@@ -43,9 +57,7 @@ in
     recursive = true;
   };
 
-  home.file."./.config/nvim/lua/thiago/init.lua".text = ''
-    require("thiago.set")
-    require("thiago.remap")
+  home.file."./.config/nvim/init.lua".text = ''
     vim.opt.runtimepath:append("${treesitter-parsers}")
   '';
 
