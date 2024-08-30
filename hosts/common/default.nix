@@ -40,6 +40,9 @@
   environment.systemPackages = with pkgs; [
     wget
     git
+    python3
+    go
+    libgcc
     exfat
     neovim
     nil

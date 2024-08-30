@@ -40,22 +40,8 @@
   };
   services.flatpak.enable = true;
   environment.systemPackages = with pkgs; [
-    wget
-    python3
-    go
-    libgcc
-    git
-    exfat
-    nil
-    nixpkgs-fmt
-    home-manager
-    rclone
-    gcsfuse
-    hwinfo
-    libinput
     gnome3.gnome-tweaks
     gnome3.gnome-session
-    zsh
     cudatoolkit
     act
     vmware-workstation
