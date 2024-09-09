@@ -4,10 +4,12 @@
   networking.networkmanager.enable = true;
   services.tailscale.enable = true;
   services.openssh.enable = true;
+  services.openssh.settings.X11Forwarding = true;
 
   virtualisation.docker =
     {
       enable = true;
+      enableNvidia = true;
       storageDriver = "btrfs";
 #      rootless = {
  #       enable = true;
