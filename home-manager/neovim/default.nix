@@ -21,7 +21,6 @@ let
     p.rust
     p.toml
     p.yaml
-    p.odin
     p.zig
   ]));
 

@@ -54,7 +54,7 @@
       rclone
       uget
       tor-browser
-
+      nerdfonts
       # blender
       # blender-bin  # Add blender-bin to the list of installed packages
     ];

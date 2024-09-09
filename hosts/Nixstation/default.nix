@@ -42,9 +42,11 @@
   environment.systemPackages = with pkgs; [
     gnome3.gnome-tweaks
     gnome3.gnome-session
+    gnomeExtensions.pop-shell
     cudatoolkit
     act
     vmware-workstation
+    xorg.xauth
   ];
 
   programs.steam = {
@@ -59,22 +61,56 @@
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.gnome.gnome-remote-desktop.enable = true;
-  services.displayManager.autoLogin.enable = false;
+  services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "thiago";
   programs.dconf.enable = true;
 
 
   services.xrdp.enable = true;
-  services.xrdp.defaultWindowManager = "${pkgs.gnome3.gnome-session}/bin/gnome-session";
+  services.xrdp.defaultWindowManager = "gnome-remote-desktop";
   services.xrdp.openFirewall = true;
 
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
+    allowPing = true;
     allowedTCPPorts = [ 3389 ];
     allowedUDPPorts = [ 3389 ];
+
+    extraCommands = ''
+      # NAT rule for sharing internet over enp129s0f1
+      iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
+      iptables -A FORWARD -i enp129s0f1 -o wlp4s0 -j ACCEPT
+      iptables -A FORWARD -i wlp4s0 -o enp129s0f1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+    '';
+  };
+    networking.interfaces.enp129s0f1.useDHCP = true; # Add your custom config here
+    networking.interfaces.enp129s0f1.ipv4.addresses = [ {
+      address = "192.168.100.1";
+      prefixLength = 24;
+    } ];
+  networking.networkmanager.unmanaged = [ "interface-name:enp129s0f1" ];
+
+  networking = {
+    nat = {
+      enable = true;
+      externalInterface = "wlp4s0";  # Your WiFi interface
+      internalInterfaces = [ "enp129s0f1" ];  # Your wired interface
+    };
   };
 
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = "1";
+  };
+
+  services.dnsmasq = {
+    enable = true;
+    extraConfig = ''
+      interface=enp129s0f1
+      dhcp-range=192.168.100.50,192.168.100.150,24h
+      dns-forward-max=1000
+    '';
+  };
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -94,6 +130,7 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+
   virtualisation.vmware.host.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
   
