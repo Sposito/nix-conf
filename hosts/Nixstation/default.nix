@@ -12,7 +12,21 @@
     ../common/screen.nix
     ../common/nvidia/default.nix
   ];
-
+#  services.motd = {
+#      enable = true;
+#      text = ''
+#    ▗▖  ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖
+#    ▐▛▚▖▐▌  █   ▝▚▞▘ ▐▌     █ ▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌
+#    ▐▌ ▝▜▌  █    ▐▌   ▝▀▚▖  █ ▐▛▀▜▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌
+#    ▐▌  ▐▌▗▄█▄▖▗▞▘▝▚▖▗▄▄▞▘  █ ▐▌ ▐▌ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌
+#                                                 
+#[   Xeon E5-2650 v4 x48 ]-[   128 Gb ]-[   Nivdia RTX 3090]
+#                                ┏┳┓┓ •        ┏┓     •   
+#                                 ┃ ┣┓┓┏┓┏┓┏┓  ┗┓┏┓┏┓┏┓╋┏┓
+#                                 ┻ ┛┗┗┗┻┗┫┗┛  ┗┛┣┛┗┛┛┗┗┗┛
+#                                         ┛      ┛        
+#      '';
+#    };
   nixpkgs.config.allowUnfree = true;
 
   boot.loader.systemd-boot.enable = true;
@@ -152,6 +166,6 @@
   # };
 
   programs.virt-manager.enable = true;
-
+  fonts.packages = with pkgs; [ nerdfonts ];
   system.stateVersion = "24.05"; # Did you read the comment?
 }

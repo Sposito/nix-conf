@@ -31,32 +31,16 @@
       config.nix.registry;
 
   nix.settings = {
-    # Enable flakes and new 'nix' command
     experimental-features = "nix-command flakes";
-    # Deduplicate and optimize nix store
     auto-optimise-store = true;
   };
 
   environment.systemPackages = with pkgs; [
     wget
     git
-    python3
-    go
-    libgcc
     exfat
-    neovim
-    nil
-    nixpkgs-fmt
     home-manager
-    rclone
     gcsfuse
-    hwinfo
-    libinput
     file
-    zsh
-
   ];
-
-
-
 }
