@@ -13,8 +13,7 @@
     ./gnome.nix
     ./zsh.nix
     ./kitty.nix
-    ./zig.nix
-    # ./jetbrains.nix
+    ./zig.nix # ./jetbrains.nix
     ./neovim
   ];
 
@@ -39,24 +38,29 @@
     username = "thiago";
     homeDirectory = "/home/thiago";
     packages = with pkgs;[
-      nil
-      transmission-gtk
       # steam
-      nordic
-      sysbench
-      firefox
-      obsidian
-      whatsapp-for-linux
-      telegram-desktop
-      inkscape
       fira-code
+      firefox
+      hwinfo
+      inkscape
+      lazygit
+      libinput
+      luarocks
+      nil
       nixpkgs-fmt
+      (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+      nordic
+      obsidian
       rclone
-      uget
+      sysbench
+      telegram-desktop
       tor-browser
-      nerdfonts
-      # blender
-      # blender-bin  # Add blender-bin to the list of installed packages
+      transmission-gtk
+      uget
+      unzip
+      whatsapp-for-linux
+      wl-clipboard
+      direnv
     ];
   };
 
@@ -76,7 +80,6 @@
 
     home-manager.enable = true;
   };
-
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
   home.stateVersion = "24.05";
 }

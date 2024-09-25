@@ -8,6 +8,7 @@ let
   unstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
   treesitterWithGrammars = (unstable.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
+    p.c
     p.comment
     p.dockerfile
     p.gitattributes
@@ -18,7 +19,6 @@ let
     p.markdown
     p.nix
     p.python
-    p.rust
     p.toml
     p.yaml
     p.zig
@@ -32,13 +32,13 @@ let
 in
 {
     home.packages = with unstable; [
+      lua5_1
+      
       ripgrep
       fd
       lua-language-server
-      rust-analyzer-unwrapped
-      black
-      luajit
-      luajitPackages.telescope-nvim
+      tree-sitter
+      ccls
     ];
 
   programs.neovim = {
