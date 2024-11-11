@@ -79,6 +79,7 @@
   services.displayManager.autoLogin.user = "thiago";
   programs.dconf.enable = true;
 
+  services.xserver.displayManager.gdm.wayland = false;
 
   services.xrdp.enable = true;
   services.xrdp.defaultWindowManager = "gnome-remote-desktop";
