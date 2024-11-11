@@ -1,20 +1,17 @@
 # ~/.config/nixpkgs/home.nix
-{ inputs
-, lib
-, config
-, pkgs
-, vscode-extensions
-, ...
-}: {
-  
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
+{
 
   imports = [
-
     ./gnome.nix
     ./zsh.nix
     ./kitty.nix
     ./zig.nix # ./jetbrains.nix
-    ./neovim
   ];
 
   nixpkgs = {
@@ -25,20 +22,24 @@
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
-      nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-        "steam"
-        "steam-original"
-        "steam-run"
-      # "blender"
-      ];
+      nixpkgs.config.allowUnfreePredicate =
+        pkg:
+        builtins.elem (lib.getName pkg) [
+          "steam"
+          "steam-original"
+          "steam-run"
+          "steamtinkerlaunch"
+          # "blender"
+        ];
     };
   };
 
   home = {
     username = "thiago";
     homeDirectory = "/home/thiago";
-    packages = with pkgs;[
+    packages = with pkgs; [
       # steam
+      inputs.nixvim.packages.x86_64-linux.default
       fira-code
       firefox
       hwinfo
@@ -48,7 +49,12 @@
       luarocks
       nil
       nixpkgs-fmt
-      (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+      (nerdfonts.override {
+        fonts = [
+          "FiraCode"
+          "DroidSansMono"
+        ];
+      })
       nordic
       obsidian
       rclone
