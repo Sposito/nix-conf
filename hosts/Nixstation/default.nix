@@ -54,8 +54,8 @@
   };
   services.flatpak.enable = true;
   environment.systemPackages = with pkgs; [
-    gnome3.gnome-tweaks
-    gnome3.gnome-session
+    gnome-tweaks
+    gnome-session
     gnomeExtensions.pop-shell
     cudatoolkit
     act
@@ -101,7 +101,7 @@
   };
     networking.interfaces.enp129s0f1.useDHCP = true; # Add your custom config here
     networking.interfaces.enp129s0f1.ipv4.addresses = [ {
-      address = "192.168.100.1";
+      address = "192.168.1.254";
       prefixLength = 24;
     } ];
   networking.networkmanager.unmanaged = [ "interface-name:enp129s0f1" ];
@@ -118,14 +118,16 @@
     "net.ipv4.ip_forward" = "1";
   };
 
-  services.dnsmasq = {
-    enable = true;
-    extraConfig = ''
-      interface=enp129s0f1
-      dhcp-range=192.168.100.50,192.168.100.150,24h
-      dns-forward-max=1000
-    '';
-  };
+  # services.dnsmasq = {
+  #   enable = false;
+    
+  #   settings = {
+  #     interface = "enp129s0f1";
+  #     dhcp-range = ["192.168.1.50,192.168.1.250,24h"];
+  #     dns-forward-max = 1000;
+
+  #   };
+  # };
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;

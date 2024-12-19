@@ -61,7 +61,7 @@
       sysbench
       telegram-desktop
       tor-browser
-      transmission-gtk
+      transmission_4-gtk
       uget
       unzip
       whatsapp-for-linux
