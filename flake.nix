@@ -2,11 +2,11 @@
   description = "My personal NixOS Config";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixvim.url = "github:sposito/nixvim";
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -23,16 +23,17 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , nixpkgs-unstable
-    , nixvim
-    , home-manager
-    , vscode-extensions
-    , vs-extensions-pkgs
-    , flake-utils
-    , ...
-    } @ inputs:
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      nixvim,
+      home-manager,
+      vscode-extensions,
+      vs-extensions-pkgs,
+      flake-utils,
+      ...
+    }@inputs:
     let
       inherit (self) outputs;
     in
@@ -41,11 +42,15 @@
       # Available through 'sudo nixos-rebuild switch --flake .#Nixbook'
       nixosConfigurations = {
         Nixbook = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs outputs; };
+          specialArgs = {
+            inherit inputs outputs;
+          };
           modules = [ ./hosts/Nixbook ];
         };
         Nixstation = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs outputs; };
+          specialArgs = {
+            inherit inputs outputs;
+          };
           modules = [ ./hosts/Nixstation ];
         };
       };
@@ -54,13 +59,17 @@
       homeConfigurations = {
         "thiago@Nixbook" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-          extraSpecialArgs = { inherit inputs outputs; };
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
 
           modules = [ ./home-manager/home.nix ];
         };
         "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-          extraSpecialArgs = { inherit inputs outputs; };
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
 
           modules = [ ./home-manager/home.nix ];
         };

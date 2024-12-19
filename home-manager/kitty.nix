@@ -7,7 +7,7 @@
 
   programs.kitty = {
     enable = true;
-    theme = "Nord";
+    themeFile = "Nord";
     settings = {
 
       hide_window_decorations = "titlebar-only";
