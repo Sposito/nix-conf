@@ -13,6 +13,9 @@
     vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";
     };
+
+    ghostty.url = "github:ghostty-org/ghostty";
+
     flake-utils.follows = "vscode-extensions/flake-utils";
     vs-extensions-pkgs.follows = "vscode-extensions/nixpkgs";
 
@@ -32,6 +35,7 @@
       vscode-extensions,
       vs-extensions-pkgs,
       flake-utils,
+      ghostty,
       ...
     }@inputs:
     let

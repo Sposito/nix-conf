@@ -1,32 +1,35 @@
-{ inputs
-, lib
-, config
-, pkgs
-, ...
-}: {
+{
+  inputs,
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+{
 
   imports = [
     ./hardware-configuration.nix
     ../common/default.nix
     ../common/network.nix
     ../common/screen.nix
+    ../common/rclone.nix
     ../common/nvidia/default.nix
   ];
-#  services.motd = {
-#      enable = true;
-#      text = ''
-#    ▗▖  ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖
-#    ▐▛▚▖▐▌  █   ▝▚▞▘ ▐▌     █ ▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌
-#    ▐▌ ▝▜▌  █    ▐▌   ▝▀▚▖  █ ▐▛▀▜▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌
-#    ▐▌  ▐▌▗▄█▄▖▗▞▘▝▚▖▗▄▄▞▘  █ ▐▌ ▐▌ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌
-#                                                 
-#[   Xeon E5-2650 v4 x48 ]-[   128 Gb ]-[   Nivdia RTX 3090]
-#                                ┏┳┓┓ •        ┏┓     •   
-#                                 ┃ ┣┓┓┏┓┏┓┏┓  ┗┓┏┓┏┓┏┓╋┏┓
-#                                 ┻ ┛┗┗┗┻┗┫┗┛  ┗┛┣┛┗┛┛┗┗┗┛
-#                                         ┛      ┛        
-#      '';
-#    };
+  #  services.motd = {
+  #      enable = true;
+  #      text = ''
+  #    ▗▖  ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖
+  #    ▐▛▚▖▐▌  █   ▝▚▞▘ ▐▌     █ ▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌
+  #    ▐▌ ▝▜▌  █    ▐▌   ▝▀▚▖  █ ▐▛▀▜▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌
+  #    ▐▌  ▐▌▗▄█▄▖▗▞▘▝▚▖▗▄▄▞▘  █ ▐▌ ▐▌ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌
+  #                                                 
+  #[   Xeon E5-2650 v4 x48 ]-[   128 Gb ]-[   Nivdia RTX 3090]
+  #                                ┏┳┓┓ •        ┏┓     •   
+  #                                 ┃ ┣┓┓┏┓┏┓┏┓  ┗┓┏┓┏┓┏┓╋┏┓
+  #                                 ┻ ┛┗┗┗┻┗┫┗┛  ┗┛┣┛┗┛┛┗┗┗┛
+  #                                         ┛      ┛        
+  #      '';
+  #    };
   nixpkgs.config.allowUnfree = true;
 
   boot.loader.systemd-boot.enable = true;
@@ -61,6 +64,7 @@
     act
     vmware-workstation
     xorg.xauth
+    jetbrains.gateway
   ];
 
   programs.steam = {
@@ -99,18 +103,20 @@
       iptables -A FORWARD -i wlp4s0 -o enp129s0f1 -m state --state RELATED,ESTABLISHED -j ACCEPT
     '';
   };
-    networking.interfaces.enp129s0f1.useDHCP = true; # Add your custom config here
-    networking.interfaces.enp129s0f1.ipv4.addresses = [ {
+  networking.interfaces.enp129s0f1.useDHCP = true; # Add your custom config here
+  networking.interfaces.enp129s0f1.ipv4.addresses = [
+    {
       address = "192.168.1.254";
       prefixLength = 24;
-    } ];
+    }
+  ];
   networking.networkmanager.unmanaged = [ "interface-name:enp129s0f1" ];
 
   networking = {
     nat = {
       enable = true;
-      externalInterface = "wlp4s0";  # Your WiFi interface
-      internalInterfaces = [ "enp129s0f1" ];  # Your wired interface
+      externalInterface = "wlp4s0"; # Your WiFi interface
+      internalInterfaces = [ "enp129s0f1" ]; # Your wired interface
     };
   };
 
@@ -120,7 +126,7 @@
 
   # services.dnsmasq = {
   #   enable = false;
-    
+
   #   settings = {
   #     interface = "enp129s0f1";
   #     dhcp-range = ["192.168.1.50,192.168.1.250,24h"];
@@ -137,7 +143,6 @@
   services.printing.enable = true;
   hardware.sane.enable = true;
 
-
   services.udev.packages = [ pkgs.utsushi ];
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -150,13 +155,12 @@
 
   virtualisation.vmware.host.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
-  
+
   virtualisation.libvirtd = {
     enable = true;
     qemu.ovmf.enable = true;
     qemu.package = pkgs.qemu_full;
   };
-
 
   boot.kernelParams = [
     "nvidia-drm.modeset=1"
