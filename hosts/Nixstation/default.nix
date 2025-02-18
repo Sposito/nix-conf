@@ -97,26 +97,26 @@
     allowedUDPPorts = [ 3389 ];
 
     extraCommands = ''
-      # NAT rule for sharing internet over enp129s0f1
+      # NAT rule for sharing internet over enp5s0
       iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
-      iptables -A FORWARD -i enp129s0f1 -o wlp4s0 -j ACCEPT
-      iptables -A FORWARD -i wlp4s0 -o enp129s0f1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+      iptables -A FORWARD -i enp5s0 -o wlp4s0 -j ACCEPT
+      iptables -A FORWARD -i wlp4s0 -o enp5s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
     '';
   };
-  networking.interfaces.enp129s0f1.useDHCP = true; # Add your custom config here
-  networking.interfaces.enp129s0f1.ipv4.addresses = [
+  networking.interfaces.enp5s0.useDHCP = true; # Add your custom config here
+  networking.interfaces.enp5s0.ipv4.addresses = [
     {
       address = "192.168.1.254";
       prefixLength = 24;
     }
   ];
-  networking.networkmanager.unmanaged = [ "interface-name:enp129s0f1" ];
-
+  networking.networkmanager.unmanaged = [ "interface-name:enp5s0" ];
+# enp6s0
   networking = {
     nat = {
       enable = true;
-      externalInterface = "wlp4s0"; # Your WiFi interface
-      internalInterfaces = [ "enp129s0f1" ]; # Your wired interface
+      # externalInterface = "wlp4s0"; # Your WiFi interface
+      internalInterfaces = [ "enp5s0" ]; # Your wired interface
     };
   };
 
@@ -128,7 +128,7 @@
   #   enable = false;
 
   #   settings = {
-  #     interface = "enp129s0f1";
+  #     interface = "enp5s0";
   #     dhcp-range = ["192.168.1.50,192.168.1.250,24h"];
   #     dns-forward-max = 1000;
 
@@ -172,6 +172,13 @@
   #   qemuOvmf = true;
   # };
 
+  nix = {
+    settings = {
+      auto-optimise-store = true;
+      extra-nix-paths = [ "/run/media/thiago/hdd0/nix-store" ];
+    };
+  };
+  
   programs.virt-manager.enable = true;
   fonts.packages = with pkgs; [ nerdfonts ];
   system.stateVersion = "24.05"; # Did you read the comment?
