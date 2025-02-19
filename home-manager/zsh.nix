@@ -1,22 +1,24 @@
 { inputs
 , lib
 , config
-
+, pkgs
 , ...
-}: {
+}:
 
+{
   programs.zsh = {
     enable = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     initExtra = ''
-    eval "$(direnv hook zsh)"
+      eval "$(direnv hook zsh)"
     '';
 
-    shellAliases ={
+    shellAliases = {
       ll = "ls -l";
-      code = "nix-shell -p direnv vscode-fhs --run code .";
-
+      code = "code-insiders";
+      pbcopy = "xclip -selection clipboard";
+      pbpaste = "xclip -selection clipboard -o";
     };
 
     oh-my-zsh = {
@@ -29,4 +31,6 @@
     };
   };
 
+  # Ensure the correct clipboard tool is installed (X11 only)
+  home.packages = with pkgs; [ xclip ];
 }
