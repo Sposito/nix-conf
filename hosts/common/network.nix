@@ -6,26 +6,34 @@
   services.openssh.enable = true;
   services.openssh.settings.X11Forwarding = true;
 
-  virtualisation.docker =
-    {
-      enable = true;
-      storageDriver = "btrfs";
-#      rootless = {
- #       enable = true;
-  #      setSocketVariable = true;
-   #   };
-      daemon.settings = {
-        userland-proxy = false;
-        experimental = true;
-        metrics-addr = "0.0.0.0:9323";
-        ipv6 = true;
-        fixed-cidr-v6 = "fd00::/80";
+  hardware.nvidia-container-toolkit.enable = true;
+
+  virtualisation.docker = {
+    enable = true;
+    package = pkgs.docker_25;
+    storageDriver = "btrfs";
+    daemon.settings = {
+      features = {
+        cdi = true;
       };
+      userland-proxy = false;
+      experimental = true;
+      metrics-addr = "0.0.0.0:9323";
+      # ipv6 = true;
+      # fixed-cidr-v6 = "fd00::/80";
+
+      # Set the NVIDIA runtime as the default
+      # default-runtime = "nvidia";
+
+
     };
+  };
+
 
   environment.systemPackages = with pkgs; [
-    docker
+    nvidia-docker
   ];
+
   networking.firewall.enable = true;
   networking.firewall.allowPing = true;
 
