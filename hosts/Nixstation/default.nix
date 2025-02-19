@@ -111,7 +111,7 @@
     }
   ];
   networking.networkmanager.unmanaged = [ "interface-name:enp5s0" ];
-# enp6s0
+  # enp6s0
   networking = {
     nat = {
       enable = true;
@@ -175,10 +175,9 @@
   nix = {
     settings = {
       auto-optimise-store = true;
-      extra-nix-paths = [ "/run/media/thiago/hdd0/nix-store" ];
     };
   };
-  
+
   programs.virt-manager.enable = true;
   fonts.packages = with pkgs; [ nerdfonts ];
   system.stateVersion = "24.05"; # Did you read the comment?
