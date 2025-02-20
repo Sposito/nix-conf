@@ -1,26 +1,33 @@
-name: NixOS CI
+name: "CI: NixOS Flake Test"
 
 on:
+  pull_request:
   push:
     branches:
-      - main
-  pull_request:
+      - master 
 
 jobs:
-  build:
+  test-flake:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: 🛎️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v22
+      - name: 🏗 Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check Nix flake
-        run: nix flake check
+      - name: ✅ Run Flake Check
+        run: nix flake check --show-trace
 
-      - name: Build NixOS Configuration
+      - name: 🔨 Build NixOS System Configuration (Nixstation)
         run: nix build .#nixosConfigurations.Nixstation.config.system.build.toplevel
 
-      - name: Show build results
-        run: ls -lah result
+      - name: 🖥 Run NixOS VM Test (Optional)
+        run: nix build .#nixosConfigurations.Nixstation.config.system.build.vm && ./result/bin/run-nixos-vm
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: nix-collect-garbage -d
