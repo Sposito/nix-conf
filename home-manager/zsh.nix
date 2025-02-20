@@ -15,10 +15,10 @@
     '';
 
     shellAliases = {
-      ll = "ls -l";
-      code = "code-insiders";
-      pbcopy = "xclip -selection clipboard";
-      pbpaste = "xclip -selection clipboard -o";
+      "ll" = "ls -l";
+      "code" = "code-insiders";
+      "pbcopy" = "xclip -selection clipboard";
+      "pbpaste" = "xclip -selection clipboard -o";
     };
 
     oh-my-zsh = {
@@ -31,6 +31,5 @@
     };
   };
 
-  # Ensure the correct clipboard tool is installed (X11 only)
   home.packages = with pkgs; [ xclip ];
 }
