@@ -24,14 +24,16 @@
 
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  services.xserver = {
-    displayManager.sddm.wayland.enable = true;
+
+  services.libinput = {
     enable = true;
-    libinput = {
-      enable = true;
-      touchpad.clickMethod = "clickfinger";
-    };
+    touchpad.clickMethod = "clickfinger";
   };
+
+  services.displayManager.sddm.wayland.enable = true;
+
+  services.xserver.enable = true;
+
 
   environment.systemPackages = with pkgs; [
     wget
