@@ -90,39 +90,39 @@
   services.xrdp.openFirewall = true;
 
   # Open ports in the firewall.
-  networking.firewall = {
-    enable = true;
-    allowPing = true;
-    allowedTCPPorts = [ 3389 ];
-    allowedUDPPorts = [ 3389 ];
+  #networking.firewall = {
+  # enable = false;
+  # allowPing = true;
+  # allowedTCPPorts = [ 3389 ];
+  # allowedUDPPorts = [ 3389 ];
 
-    extraCommands = ''
-      # NAT rule for sharing internet over enp5s0
-      iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
-      iptables -A FORWARD -i enp5s0 -o wlp4s0 -j ACCEPT
-      iptables -A FORWARD -i wlp4s0 -o enp5s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-    '';
-  };
-  networking.interfaces.enp5s0.useDHCP = true; # Add your custom config here
-  networking.interfaces.enp5s0.ipv4.addresses = [
-    {
-      address = "192.168.1.254";
-      prefixLength = 24;
-    }
-  ];
-  networking.networkmanager.unmanaged = [ "interface-name:enp5s0" ];
+  # extraCommands = ''
+  # NAT rule for sharing internet over enp5s0
+  #  iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
+  #  iptables -A FORWARD -i enp5s0 -o wlp4s0 -j ACCEPT
+  #  iptables -A FORWARD -i wlp4s0 -o enp5s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+  #'';
+  #};
+
+  #networking.interfaces.enp5s0.useDHCP = true; # Add your custom config here
+  #  networking.interfaces.enp5s0.ipv4.addresses = [
+  #    {
+  #     address = "192.168.1.254";
+  #     prefixLength = 24;
+  #    }
+  #  ];
+  # networking.networkmanager.unmanaged = [ "interface-name:enp5s0" ];
   # enp6s0
-  networking = {
-    nat = {
-      enable = true;
-      # externalInterface = "wlp4s0"; # Your WiFi interface
-      internalInterfaces = [ "enp5s0" ]; # Your wired interface
-    };
-  };
+  #networking = {
+  #nat = {
+  #     enable = true;
+  #     internalInterfaces = [ "enp5s0" ]; # Your wired interface
+  #   };
+  # };
 
-  boot.kernel.sysctl = {
-    "net.ipv4.ip_forward" = "1";
-  };
+  # boot.kernel.sysctl = {
+  #   "net.ipv4.ip_forward" = "1";
+  # };
 
   # services.dnsmasq = {
   #   enable = false;
@@ -136,6 +136,7 @@
   # };
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
 
