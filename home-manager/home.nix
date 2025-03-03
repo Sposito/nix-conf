@@ -11,7 +11,9 @@
     ./gnome.nix
     ./zsh.nix
     ./kitty.nix
-    #./zig.nix # ./jetbrains.nix
+    #./zig.nix 
+    ./jetbrains.nix
+    ./polymc.nix
   ];
 
   nixpkgs = {
@@ -29,7 +31,6 @@
           "steam-original"
           "steam-run"
           "steamtinkerlaunch"
-          # "blender"
         ];
     };
   };
@@ -83,7 +84,6 @@
         );
         version = "latest";
       });
-
     };
 
     git = {
@@ -93,7 +93,9 @@
       userName = "Thiago Sposito";
 
     };
-
+    nixvim.plugins = {
+      conjure.enable = true;
+    };
     home-manager.enable = true;
   };
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
