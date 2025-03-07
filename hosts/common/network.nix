@@ -1,7 +1,14 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 {
   networking.hostName = "Nixstation";
   networking.networkmanager.enable = true;
+
+  networking.firewall = {
+    enable = true;
+    allowPing = true;
+    allowedTCPPorts = [ 25565 ];
+  };
+
   services.tailscale.enable = true;
   services.openssh.enable = true;
   services.openssh.settings.X11Forwarding = true;
@@ -25,17 +32,12 @@
       # Set the NVIDIA runtime as the default
       # default-runtime = "nvidia";
 
-
     };
   };
-
 
   environment.systemPackages = with pkgs; [
     nvidia-docker
   ];
-
-  networking.firewall.enable = true;
-  networking.firewall.allowPing = true;
 
   services.samba = {
     enable = true;
@@ -69,7 +71,6 @@
       #   '';
       # };
     };
-
 
   };
 
