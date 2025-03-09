@@ -93,9 +93,6 @@
       userName = "Thiago Sposito";
 
     };
-    nixvim.plugins = {
-      conjure.enable = true;
-    };
     home-manager.enable = true;
   };
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
