@@ -17,14 +17,20 @@
   users.defaultUserShell = pkgs.zsh;
   environment.shells = with pkgs; [ zsh ];
   programs.zsh.enable = true;
-  # This will add each flake input as a registry to make nix3 commands consistent with your flake
-  nix.registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
-    (lib.filterAttrs (_: lib.isType "flake")) inputs
-  );
 
-  # This will additionally add your inputs to the system's legacy channels
-  # Making legacy nix commands consistent as well, awesome!
-  nix.nixPath = [ "/etc/nix/path" ];
+  nix = {
+    registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
+      (lib.filterAttrs (_: lib.isType "flake")) inputs
+    );
+
+    nixPath = [ "/etc/nix/path" ];
+
+    settings = {
+      experimental-features = "nix-command flakes";
+      auto-optimise-store = true;
+    };
+  };
+
   environment.etc = lib.mapAttrs'
     (name: value: {
       name = "nix/path/${name}";
@@ -32,10 +38,7 @@
     })
     config.nix.registry;
 
-  nix.settings = {
-    experimental-features = "nix-command flakes";
-    auto-optimise-store = true;
-  };
+
 
   environment.systemPackages = with pkgs; [
     wget

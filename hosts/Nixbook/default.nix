@@ -21,19 +21,16 @@
     enable = true;
   };
 
-
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-
-  services.libinput = {
-    enable = true;
-    touchpad.clickMethod = "clickfinger";
+  services = {
+    libinput = {
+      enable = true;
+      touchpad.clickMethod = "clickfinger";
+    };
+    displayManager.sddm.wayland.enable = true;
+    xserver.enable = true;
   };
-
-  services.displayManager.sddm.wayland.enable = true;
-
-  services.xserver.enable = true;
-
 
   environment.systemPackages = with pkgs; [
     wget

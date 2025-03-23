@@ -167,10 +167,6 @@
     "intel_iommu=on"
     "iommu=pt"
   ];
-  # virtualisation.libvirtd = {
-  #   enable = true;
-  #   qemuOvmf = true;
-  # };
 
   nix = {
     settings = {
@@ -180,5 +176,5 @@
 
   programs.virt-manager.enable = true;
   fonts.packages = with pkgs; [ nerdfonts ];
-  system.stateVersion = "24.05"; # Did you read the comment?
+  system.stateVersion = "24.05"; #keep it!
 }
