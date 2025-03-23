@@ -1,18 +1,11 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
-
   hardware = {
     graphics = {
       enable = true;
       enable32Bit = true;
     };
-
     nvidia-container-toolkit.enable = true;
-    services.xserver = {
-      enable = true;
-      videoDrivers = [ "nvidia" ];
-    };
-
     nvidia = {
       modesetting.enable = true;
       powerManagement.enable = false;
@@ -23,6 +16,10 @@
     };
   };
 
+  services.xserver = {
+    enable = true;
+    videoDrivers = [ "nvidia" ];
+  };
   nixpkgs.config.cudaSupport = true;
   environment.systemPackages = with pkgs; [
     mesa
@@ -31,4 +28,7 @@
     libglvnd
     # nvidia-container-toolkit
   ];
+
+  
 }
+
