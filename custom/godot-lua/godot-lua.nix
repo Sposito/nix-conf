@@ -26,8 +26,6 @@
 , vulkan-loader
 , wayland
 , wayland-scanner
-, luajit
-, zlib
 , moduleSrc
 , withDbus ? true
 , withDebug ? false

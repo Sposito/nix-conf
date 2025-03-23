@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 {
   # boot.kernelModules = ["i2c-dev"];
   # services.udev.extraRules = ''

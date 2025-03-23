@@ -1,9 +1,6 @@
 # This replaces /etc/nixos/configuration.nix)
 
-{ inputs
-, lib
-, config
-, pkgs
+{ pkgs
 , ...
 }: {
 
