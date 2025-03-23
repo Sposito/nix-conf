@@ -1,49 +1,49 @@
-{ 
-  alsa-lib,
-  autoPatchelfHook,
-  buildPackages,
-  dbus,
-  fetchFromGitHub,
-  fontconfig,
-  installShellFiles,
-  lib,
-  libdecor,
-  libGL,
-  libpulseaudio,
-  libX11,
-  libXcursor,
-  libXext,
-  libXfixes,
-  libXi,
-  libXinerama,
-  libxkbcommon,
-  libXrandr,
-  libXrender,
-  pkg-config,
-  scons,
-  speechd-minimal,
-  stdenv,
-  udev,
-  vulkan-loader,
-  wayland,
-  wayland-scanner,
-  luajit,
-  zlib,
-  moduleSrc,
-  withDbus ? true,
-  withDebug ? false,
-  withFontconfig ? true,
-  withPlatform ? "linuxbsd",
-  withPrecision ? "single",
-  withPulseaudio ? true,
-  withSpeechd ? true,
-  withTarget ? "editor",
-  withTouch ? true,
-  withUdev ? true,
-  # Wayland in Godot requires X11 until upstream fix is merged
+{ alsa-lib
+, autoPatchelfHook
+, buildPackages
+, dbus
+, fetchFromGitHub
+, fontconfig
+, installShellFiles
+, lib
+, libdecor
+, libGL
+, libpulseaudio
+, libX11
+, libXcursor
+, libXext
+, libXfixes
+, libXi
+, libXinerama
+, libxkbcommon
+, libXrandr
+, libXrender
+, pkg-config
+, scons
+, speechd-minimal
+, stdenv
+, udev
+, vulkan-loader
+, wayland
+, wayland-scanner
+, luajit
+, zlib
+, moduleSrc
+, withDbus ? true
+, withDebug ? false
+, withFontconfig ? true
+, withPlatform ? "linuxbsd"
+, withPrecision ? "single"
+, withPulseaudio ? true
+, withSpeechd ? true
+, withTarget ? "editor"
+, withTouch ? true
+, withUdev ? true
+, # Wayland in Godot requires X11 until upstream fix is merged
   # https://github.com/godotengine/godot/pull/73504
-  withWayland ? true,
-  withX11 ? true,
+  withWayland ? true
+, withX11 ? true
+,
 }:
 assert lib.asserts.assertOneOf "withPrecision" withPrecision [
   "single"

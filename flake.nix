@@ -26,17 +26,16 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-unstable,
-      nixvim,
-      home-manager,
-      vscode-extensions,
-      vs-extensions-pkgs,
-      flake-utils,
-      ghostty,
-      ...
+    { self
+    , nixpkgs
+    , nixpkgs-unstable
+    , nixvim
+    , home-manager
+    , vscode-extensions
+    , vs-extensions-pkgs
+    , flake-utils
+    , ghostty
+    , ...
     }@inputs:
     let
       inherit (self) outputs;

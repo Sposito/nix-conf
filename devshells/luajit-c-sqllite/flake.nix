@@ -9,12 +9,12 @@
     devShells = {
       x86_64-linux = nixpkgs.lib.mkShell {
         buildInputs = with nixpkgs; [
-          luajit                # LuaJIT for Lua execution
-          luarocks              # Luarocks for managing Lua modules
-          sqlite                # SQLite3 library
-          gcc                   # GCC for C development
-          pkg-config            # Needed for compiling C libraries
-          make                  # Make for compiling C projects
+          luajit # LuaJIT for Lua execution
+          luarocks # Luarocks for managing Lua modules
+          sqlite # SQLite3 library
+          gcc # GCC for C development
+          pkg-config # Needed for compiling C libraries
+          make # Make for compiling C projects
           # Add more C libraries as necessary
         ];
 
