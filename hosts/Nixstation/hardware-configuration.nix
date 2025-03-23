@@ -29,7 +29,7 @@
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-  fileSystems."/mnt/hdd0" = 
+  fileSystems."/mnt/hdd0" =
     {
       device = "/dev/disk/by-uuid/940353dd-5774-4577-aba3-516d3f9c404d";
       fsType = "btrfs";

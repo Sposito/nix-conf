@@ -1,10 +1,9 @@
-
 { inputs
-,pkgs
-, ... 
-}: 
-{ 
-    home.packages = with pkgs; [
+, pkgs
+, ...
+}:
+{
+  home.packages = with pkgs; [
     jetbrains.clion
     jetbrains.pycharm-professional
     jetbrains.goland

@@ -14,7 +14,7 @@
         "code.desktop"
         "kitty.desktop"
       ];
-      
+
       enabled-extensions = [
         ""
         "trayIconsReloaded@selfmade.pl"
@@ -35,6 +35,6 @@
     gnomeExtensions.sound-output-device-chooser
     gnomeExtensions.space-bar
     nordzy-icon-theme
-    
+
   ];
 }

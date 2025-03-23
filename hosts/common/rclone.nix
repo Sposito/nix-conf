@@ -3,7 +3,7 @@
 {
   environment.systemPackages = with pkgs; [
     rclone
-    fuse3  # Required for mounting
+    fuse3 # Required for mounting
   ];
 
   users.users.thiago = {
