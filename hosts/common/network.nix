@@ -6,7 +6,10 @@
   networking.firewall = {
     enable = true;
     allowPing = true;
-    allowedTCPPorts = [ 25565 ];
+    allowedTCPPorts = [
+      25565
+      2375
+    ];
   };
 
   services.tailscale.enable = true;
@@ -19,19 +22,21 @@
     enable = true;
     package = pkgs.docker_25;
     storageDriver = "btrfs";
+
     daemon.settings = {
+
+      hosts = [
+        "unix:///var/run/docker.sock"
+        "tcp://100.99.44.69:2375"
+      ];
+
       features = {
         cdi = true;
       };
+
       userland-proxy = false;
       experimental = true;
       metrics-addr = "0.0.0.0:9323";
-      # ipv6 = true;
-      # fixed-cidr-v6 = "fd00::/80";
-
-      # Set the NVIDIA runtime as the default
-      # default-runtime = "nvidia";
-
     };
   };
 
