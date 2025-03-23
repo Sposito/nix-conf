@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs";
   };
 
-  outputs = { self, nixpkgs }: {
+  outputs = { nixpkgs }: {
     devShells = {
       x86_64-linux = nixpkgs.lib.mkShell {
         buildInputs = with nixpkgs; [
