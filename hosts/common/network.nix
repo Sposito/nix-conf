@@ -12,9 +12,12 @@
     ];
   };
 
-  services.tailscale.enable = true;
-  services.openssh.enable = true;
-  services.openssh.settings.X11Forwarding = true;
+  services = {
+    tailscale.enable = true;
+    openssh.enable = true;
+    openssh.settings.X11Forwarding = true;
+  };
+
 
   hardware.nvidia-container-toolkit.enable = true;
 
