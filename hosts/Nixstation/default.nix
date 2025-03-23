@@ -31,16 +31,17 @@
   #    };
   nixpkgs.config.allowUnfree = true;
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = true;
+    kernelParams = [
+      "nvidia-drm.modeset=1"
+      "intel_iommu=on"
+      "iommu=pt"
+    ];
+  };
 
   time.timeZone = "America/Sao_Paulo";
-
-  services.xserver.xkb = {
-    # Configure keymap in X11
-    layout = "us";
-    variant = "alt-intl";
-  };
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
@@ -54,7 +55,7 @@
     LC_TELEPHONE = "pt_BR.UTF-8";
     LC_TIME = "pt_BR.UTF-8";
   };
-  services.flatpak.enable = true;
+
   environment.systemPackages = with pkgs; [
     gnome-tweaks
     gnome-session
@@ -66,27 +67,53 @@
     jetbrains.gateway
   ];
 
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-    localNetworkGameTransfers.openFirewall = true;
-    # Open ports in the firewall for Steam Local Network Game Transfers
+  programs = {
+    steam = {
+      enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+
+    };
+
+    dconf.enable = true;
+    virt-manager.enable = true;
   };
 
-  services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-  services.gnome.gnome-remote-desktop.enable = true;
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "thiago";
-  programs.dconf.enable = true;
+  services = {
+    xserver = {
+      enable = true;
+      displayManager.gdm.enable = true;
+      desktopManager.gnome.enable = true;
+      displayManager.gdm.wayland = false;
+      xkb = {
+        layout = "us";
+        variant = "alt-intl";
+      };
+    };
+    gnome.gnome-remote-desktop.enable = true;
+    displayManager.autoLogin.enable = true;
+    displayManager.autoLogin.user = "thiago";
 
-  services.xserver.displayManager.gdm.wayland = false;
+    flatpak.enable = true;
 
-  services.xrdp.enable = true;
-  services.xrdp.defaultWindowManager = "gnome-remote-desktop";
-  services.xrdp.openFirewall = true;
+    xrdp = {
+      enable = true;
+      defaultWindowManager = "gnome-remote-desktop";
+      openFirewall = true;
+    };
+
+    udev.packages = [ pkgs.utsushi ];
+    printing.enable = true;
+
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+  };
+
 
   # Open ports in the firewall.
   #networking.firewall = {
@@ -140,33 +167,21 @@
   systemd.services."autovt@tty1".enable = false;
 
   # Enable CUPS to print documents.
-  services.printing.enable = true;
+
   hardware.sane.enable = true;
 
-  services.udev.packages = [ pkgs.utsushi ];
+
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
+  virtualisation = {
+    vmware.host.enable = true;
+    spiceUSBRedirection.enable = true;
+    libvirtd = {
+      enable = true;
+      qemu.ovmf.enable = true;
+      qemu.package = pkgs.qemu_full;
+    };
   };
-
-  virtualisation.vmware.host.enable = true;
-  virtualisation.spiceUSBRedirection.enable = true;
-
-  virtualisation.libvirtd = {
-    enable = true;
-    qemu.ovmf.enable = true;
-    qemu.package = pkgs.qemu_full;
-  };
-
-  boot.kernelParams = [
-    "nvidia-drm.modeset=1"
-    "intel_iommu=on"
-    "iommu=pt"
-  ];
 
   nix = {
     settings = {
@@ -174,7 +189,6 @@
     };
   };
 
-  programs.virt-manager.enable = true;
   fonts.packages = with pkgs; [ nerdfonts ];
   system.stateVersion = "24.05"; #keep it!
 }

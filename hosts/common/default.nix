@@ -15,7 +15,7 @@
   time.timeZone = "America/Sao_Paulo";
 
   users.defaultUserShell = pkgs.zsh;
-  environment.shells = with pkgs; [ zsh ];
+
   programs.zsh.enable = true;
 
   nix = {
@@ -30,22 +30,22 @@
       auto-optimise-store = true;
     };
   };
+  environment = {
+    shells = with pkgs; [ zsh ];
+    etc = lib.mapAttrs'
+      (name: value: {
+        name = "nix/path/${name}";
+        value.source = value.flake;
+      })
+      config.nix.registry;
+    systemPackages = with pkgs; [
+      wget
+      git
+      exfat
+      home-manager
+      gcsfuse
+      file
+    ];
+  };
 
-  environment.etc = lib.mapAttrs'
-    (name: value: {
-      name = "nix/path/${name}";
-      value.source = value.flake;
-    })
-    config.nix.registry;
-
-
-
-  environment.systemPackages = with pkgs; [
-    wget
-    git
-    exfat
-    home-manager
-    gcsfuse
-    file
-  ];
 }

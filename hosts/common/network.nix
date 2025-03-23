@@ -1,15 +1,17 @@
 { pkgs, ... }:
 {
-  networking.hostName = "Nixstation";
-  networking.networkmanager.enable = true;
+  networking = {
+    hostName = "Nixstation";
+    networkmanager.enable = true;
 
-  networking.firewall = {
-    enable = true;
-    allowPing = true;
-    allowedTCPPorts = [
-      25565
-      2375
-    ];
+    firewall = {
+      enable = true;
+      allowPing = true;
+      allowedTCPPorts = [
+        25565
+        2375
+      ];
+    };
   };
 
   services = {
@@ -17,7 +19,6 @@
     openssh.enable = true;
     openssh.settings.X11Forwarding = true;
   };
-
 
   hardware.nvidia-container-toolkit.enable = true;
 
@@ -79,7 +80,6 @@
       #   '';
       # };
     };
-
   };
 
   services.samba-wsdd = {
