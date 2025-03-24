@@ -1,6 +1,7 @@
-{ config
-, pkgs
-, ...
+{
+  config,
+  pkgs,
+  ...
 }:
 {
 
@@ -33,9 +34,9 @@
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     kernelParams = [
-      "nvidia-drm.modeset=1"
-      "intel_iommu=on"
-      "iommu=pt"
+      # "nvidia-drm.modeset=1"
+      # "intel_iommu=on"
+      # "iommu=pt"
     ];
   };
 
@@ -62,7 +63,7 @@
     act
     vmware-workstation
     xorg.xauth
-    jetbrains.gateway
+    #jetbrains.gateway
   ];
 
   programs = {
@@ -89,20 +90,20 @@
         variant = "alt-intl";
       };
     };
-    gnome.gnome-remote-desktop.enable = true;
+    # gnome.gnome-remote-desktop.enable = true;
     displayManager.autoLogin.enable = true;
     displayManager.autoLogin.user = "thiago";
 
     flatpak.enable = true;
 
     xrdp = {
-      enable = true;
+      enable = false;
       defaultWindowManager = "gnome-remote-desktop";
       openFirewall = true;
     };
 
-    udev.packages = [ pkgs.utsushi ];
-    printing.enable = true;
+    # udev.packages = [ pkgs.utsushi ];
+    # printing.enable = true;
 
     pipewire = {
       enable = true;
@@ -110,8 +111,19 @@
       alsa.support32Bit = true;
       pulse.enable = true;
     };
+
+    earlyoom = {
+      enable = true;
+      freeMemThreshold = 5;
+      freeSwapThreshold = 10;
+    };
   };
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 30;
+    algorithm = "zstd";
+  };
 
   # Open ports in the firewall.
   #networking.firewall = {
@@ -168,7 +180,6 @@
 
   hardware.sane.enable = true;
 
-
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   virtualisation = {
@@ -188,5 +199,5 @@
   };
 
   fonts.packages = with pkgs; [ nerdfonts ];
-  system.stateVersion = "24.05"; #keep it!
+  system.stateVersion = "24.05"; # keep it!
 }
