@@ -11,7 +11,7 @@
     ../common/screen.nix
     ../common/rclone.nix
     ../common/nvidia/default.nix
-    ../common/keycron.nix
+    ../common/keychron.nix
   ];
   #  services.motd = {
   #      enable = true;
@@ -100,9 +100,6 @@
       openFirewall = true;
     };
 
-    # udev.packages = [ pkgs.utsushi ];
-    # printing.enable = true;
-
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -123,52 +120,11 @@
     algorithm = "zstd";
   };
 
-  # Open ports in the firewall.
   networking.firewall = {
     enable = true;
     allowPing = true;
     allowedTCPPorts = [ 11434 ];
   };
-  # allowedUDPPorts = [ 3389 ];
-
-  # extraCommands = ''
-  # NAT rule for sharing internet over enp5s0
-  #  iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
-  #  iptables -A FORWARD -i enp5s0 -o wlp4s0 -j ACCEPT
-  #  iptables -A FORWARD -i wlp4s0 -o enp5s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-  #'';
-  #};
-
-  #networking.interfaces.enp5s0.useDHCP = true; # Add your custom config here
-  #  networking.interfaces.enp5s0.ipv4.addresses = [
-  #    {
-  #     address = "192.168.1.254";
-  #     prefixLength = 24;
-  #    }
-  #  ];
-  # networking.networkmanager.unmanaged = [ "interface-name:enp5s0" ];
-  # enp6s0
-  #networking = {
-  #nat = {
-  #     enable = true;
-  #     internalInterfaces = [ "enp5s0" ]; # Your wired interface
-  #   };
-  # };
-
-  # boot.kernel.sysctl = {
-  #   "net.ipv4.ip_forward" = "1";
-  # };
-
-  # services.dnsmasq = {
-  #   enable = false;
-
-  #   settings = {
-  #     interface = "enp5s0";
-  #     dhcp-range = ["192.168.1.50,192.168.1.250,24h"];
-  #     dns-forward-max = 1000;
-
-  #   };
-  # };
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
 
@@ -196,10 +152,7 @@
     };
   };
 
-  # Enable CUPS to print documents.
-
   hardware.sane.enable = true;
-
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   virtualisation = {
