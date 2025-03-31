@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -12,6 +11,7 @@
     ../common/screen.nix
     ../common/rclone.nix
     ../common/nvidia/default.nix
+    ../common/keycron.nix
   ];
   #  services.motd = {
   #      enable = true;
@@ -86,11 +86,8 @@
       displayManager.gdm.enable = true;
       desktopManager.gnome.enable = true;
       displayManager.gdm.wayland = false;
-      xkb = {
-        layout = "us";
-        variant = "alt-intl";
-      };
     };
+
     # gnome.gnome-remote-desktop.enable = true;
     displayManager.autoLogin.enable = true;
     displayManager.autoLogin.user = "thiago";
@@ -127,10 +124,11 @@
   };
 
   # Open ports in the firewall.
-  #networking.firewall = {
-  # enable = false;
-  # allowPing = true;
-  # allowedTCPPorts = [ 3389 ];
+  networking.firewall = {
+    enable = true;
+    allowPing = true;
+    allowedTCPPorts = [ 11434 ];
+  };
   # allowedUDPPorts = [ 3389 ];
 
   # extraCommands = ''
@@ -187,14 +185,14 @@
         ExecStart = "${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B / && ${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B /mnt/hdd0";
       };
     };
+  };
 
-    timers.btrfs-scrub = {
-      description = "Run Btrfs Scrub Daily";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = "daily";
-        Persistent = true;
-      };
+  systemd.timers.btrfs-scrub = {
+    description = "Run Btrfs Scrub Daily";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
     };
   };
 

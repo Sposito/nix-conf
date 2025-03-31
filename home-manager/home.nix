@@ -1,8 +1,9 @@
 # ~/.config/nixpkgs/home.nix
-{ inputs
-, lib
-, pkgs
-, ...
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 {
 
@@ -64,6 +65,8 @@
       transmission_4-gtk
       uget
       unzip
+      vivaldi
+      vivaldi-ffmpeg-codecs
       whatsapp-for-linux
       wl-clipboard
       direnv
