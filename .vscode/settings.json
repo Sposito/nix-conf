@@ -1,7 +1,7 @@
 {
   "gitlens.telemetry.enabled": false,
   "nix.enableLanguageServer": true,
-  "nix.serverPath": "nil",
+  "nix.serverPath": "/home/thiago/.nix-profile/bin/nil",
   "nix.serverSettings": {
     "nil": {
       "diagnostics": {

@@ -2,6 +2,7 @@
   description = "My personal NixOS Config";
 
   inputs = {
+    disko.url = "github:nix-community/disko";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixvim.url = "github:sposito/nixvim";
@@ -42,7 +43,11 @@
           specialArgs = {
             inherit inputs outputs;
           };
-          modules = [ ./hosts/Nixbook ];
+          modules = [
+            ./hosts/Nixbook
+            ./hosts/Nixbook/disko.nix
+            inputs.disko.nixosModules.disko
+          ];
         };
         Nixstation = nixpkgs.lib.nixosSystem {
           specialArgs = {
@@ -72,5 +77,10 @@
         };
 
       };
+
+    apps.x86_64-linux.disko-install = {
+      type = "app";
+      program = "${inputs.disko.packages.x86_64-linux.disko}/bin/disko-install";
+    };
     };
 }
