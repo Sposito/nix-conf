@@ -1,22 +1,34 @@
-{ inputs
+{ config
+, inputs
 , lib
-, config
 , pkgs
 , ...
 }:
 {
-
   imports = [ ./users/thiago/default.nix ];
 
   boot.loader.systemd-boot.enable = true;
+  environment = {
+    shells = with pkgs; [ zsh ];
+    etc = lib.mapAttrs'
+      (name: value: {
+        name = "nix/path/${name}";
+        value.source = value.flake;
+      })
+      config.nix.registry;
+    systemPackages = with pkgs; [
+      exfat
+      file
+      gcsfuse
+      git
+      home-manager
+      opensc
+      pcsc-safenet
+      sops
+      wget
+    ];
+  };
   networking.networkmanager.enable = true;
-  nixpkgs.config.allowUnfree = true;
-  time.timeZone = "America/Sao_Paulo";
-
-  users.defaultUserShell = pkgs.zsh;
-
-  programs.zsh.enable = true;
-
   nix = {
     registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
       (lib.filterAttrs (_: lib.isType "flake")) inputs
@@ -29,22 +41,9 @@
       auto-optimise-store = true;
     };
   };
-  environment = {
-    shells = with pkgs; [ zsh ];
-    etc = lib.mapAttrs'
-      (name: value: {
-        name = "nix/path/${name}";
-        value.source = value.flake;
-      })
-      config.nix.registry;
-    systemPackages = with pkgs; [
-      wget
-      git
-      exfat
-      home-manager
-      gcsfuse
-      file
-    ];
-  };
-
+  nixpkgs.config.allowUnfree = true;
+  programs.zsh.enable = true;
+  services.pcscd.enable = true;
+  time.timeZone = "America/Sao_Paulo";
+  users.defaultUserShell = pkgs.zsh;
 }

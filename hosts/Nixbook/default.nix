@@ -1,16 +1,10 @@
-# This replaces /etc/nixos/configuration.nix)
-
-{ pkgs
-, ...
-}: {
+{ pkgs, ... }: {
 
   imports = [
     ./hardware-configuration.nix
     ./apple.nix
     ../common/default.nix
   ];
-
-
 
   networking.hostName = "Nixbook";
 
@@ -42,7 +36,6 @@
     hwinfo
     libinput
   ];
-
 
   services.openssh = {
     enable = true;
