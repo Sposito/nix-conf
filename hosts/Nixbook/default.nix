@@ -16,33 +16,31 @@
 
   services = {
     libinput = {
+    displayManager.sddm.wayland.enable = true;
       enable = true;
       touchpad.clickMethod = "clickfinger";
     };
-    displayManager.sddm.wayland.enable = true;
     xserver.enable = true;
   };
 
   environment.systemPackages = with pkgs; [
-    wget
-    git
     exfat
+    gcsfuse
+    git
+    home-manager
+    hwinfo
+    libinput
     neovim
     nil
     nixpkgs-fmt
-    home-manager
     rclone
-    gcsfuse
-    hwinfo
-    libinput
+    wget
   ];
 
   services.openssh = {
     enable = true;
     settings = {
-      # Forbid root login through SSH.
       PermitRootLogin = "no";
-      # Use keys only. Remove if you want to SSH using password (not recommended)
       PasswordAuthentication = false;
     };
   };

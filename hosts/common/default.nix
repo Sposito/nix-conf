@@ -21,13 +21,17 @@
       file
       gcsfuse
       git
+      gnupg
       home-manager
       opensc
       pcsc-safenet
+      pcsctools
+      pkcs11helper
       sops
       wget
     ];
   };
+  hardware.smartcard.enable = true;
   networking.networkmanager.enable = true;
   nix = {
     registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
