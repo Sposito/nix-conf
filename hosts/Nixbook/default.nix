@@ -8,19 +8,33 @@
 
   networking.hostName = "Nixbook";
 
-  programs.hyprland = {
-    enable = true;
+  programs.hyprland.enable = true;
+  programs.hyprland.withUWSM = true;
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
   };
 
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
-
   services = {
+    xserver.enable = true;
+
+    displayManager.sddm = {
+      enable = true;
+      wayland.enable = true;
+    };
+
     libinput = {
-      displayManager.sddm.wayland.enable = true;
       enable = true;
       touchpad.clickMethod = "clickfinger";
     };
-    xserver.enable = true;
+
+    openssh = {
+      enable = true;
+      settings = {
+        PermitRootLogin = "no";
+        PasswordAuthentication = false;
+      };
+    };
   };
 
   environment.systemPackages = with pkgs; [
@@ -36,14 +50,6 @@
     rclone
     wget
   ];
-
-  services.openssh = {
-    enable = true;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-    };
-  };
 
   system.stateVersion = "23.11";
 }
