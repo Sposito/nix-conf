@@ -16,7 +16,7 @@
 
   services = {
     libinput = {
-    displayManager.sddm.wayland.enable = true;
+      displayManager.sddm.wayland.enable = true;
       enable = true;
       touchpad.clickMethod = "clickfinger";
     };
