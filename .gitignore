@@ -1,2 +1,4 @@
 custom/*/result
 custom/*/result/*
+result/*
+result/
