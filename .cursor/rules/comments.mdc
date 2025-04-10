@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Cooments
+- Good documented code is code that is self explanatory.
+- It is ok to write comments to guide your flow, but it is important to remove the unuseful one at the end.
+    - when commenting add a small signature in the start of the line
+    - like a 🚧 emoji so you remember removing it later
+    - this is also valid for placeholder comments for future code iterations
+- Only use comments for pitfals or hard to grap but unavoidable hacks
