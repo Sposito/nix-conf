@@ -4,6 +4,7 @@ let
 in
 {
   users.users.thiago = {
+
     isNormalUser = true;
     extraGroups =
       [
@@ -22,6 +23,9 @@ in
         "scanner"
         "photos"
       ];
+    openssh.authorizedKeys.keyFiles = [
+      (builtins.fetchurl "https://github.com/sposito.keys")
+    ];
 
     packages = [ pkgs.home-manager ];
   };

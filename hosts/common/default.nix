@@ -31,7 +31,6 @@
       wget
     ];
   };
-  hardware.smartcard.enable = true;
   networking.networkmanager.enable = true;
   nix = {
     registry = (lib.mapAttrs (_: flake: { inherit flake; })) (

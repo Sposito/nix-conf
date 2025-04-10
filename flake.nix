@@ -78,9 +78,9 @@
 
       };
 
-    apps.x86_64-linux.disko-install = {
-      type = "app";
-      program = "${inputs.disko.packages.x86_64-linux.disko}/bin/disko-install";
-    };
+      apps.x86_64-linux.disko-install = {
+        type = "app";
+        program = "${inputs.disko.packages.x86_64-linux.disko}/bin/disko-install";
+      };
     };
 }
