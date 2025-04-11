@@ -12,21 +12,32 @@
     ../common/nvidia/default.nix
     ../common/keychron.nix
   ];
-  #  services.motd = {
-  #      enable = true;
-  #      text = ''
-  #    ▗▖  ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖
-  #    ▐▛▚▖▐▌  █   ▝▚▞▘ ▐▌     █ ▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌
-  #    ▐▌ ▝▜▌  █    ▐▌   ▝▀▚▖  █ ▐▛▀▜▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌
-  #    ▐▌  ▐▌▗▄█▄▖▗▞▘▝▚▖▗▄▄▞▘  █ ▐▌ ▐▌ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌
-  #                                                 
-  #[   Xeon E5-2650 v4 x48 ]-[   128 Gb ]-[   Nivdia RTX 3090]
-  #                                ┏┳┓┓ •        ┏┓     •   
-  #                                 ┃ ┣┓┓┏┓┏┓┏┓  ┗┓┏┓┏┓┏┓╋┏┓
-  #                                 ┻ ┛┗┗┗┻┗┫┗┛  ┗┛┣┛┗┛┛┗┗┗┛
-  #                                         ┛      ┛        
-  #      '';
-  #    };
+
+  systemd.services.custom-motd = {
+    description = "Set custom Message of the Day";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "set-motd" ''
+              cat << 'EOF' > /etc/motd
+        ▗▖  ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖
+        ▐▛▚▖▐▌  █   ▝▚▞▘ ▐▌     █ ▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌
+        ▐▌ ▝▜▌  █    ▐▌   ▝▀▚▖  █ ▐▛▀▜▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌
+        ▐▌  ▐▌▗▄█▄▖▗▞▘▝▚▖▗▄▄▞▘  █ ▐▌ ▐▌ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌
+
+        [  Xeon E5-2650 v4 x48 ]-[   128 Gb ]-[  RTX 3090]
+
+        ┏┳┓┓ •        ┏┓     •   
+         ┃ ┣┓┓┏┓┏┓┏┓  ┗┓┏┓┏┓┏┓╋┏┓
+         ┻ ┛┗┗┗┻┗┫┗┛  ┗┛┣┛┗┛┛┗┗┗┛
+                 ┛      ┛        
+
+        EOF
+      '';
+      RemainAfterExit = true;
+    };
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   boot = {
@@ -37,21 +48,6 @@
       # "intel_iommu=on"
       # "iommu=pt"
     ];
-  };
-
-  time.timeZone = "America/Sao_Paulo";
-
-  i18n.defaultLocale = "en_US.UTF-8";
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "pt_BR.UTF-8";
-    LC_IDENTIFICATION = "pt_BR.UTF-8";
-    LC_MEASUREMENT = "pt_BR.UTF-8";
-    LC_MONETARY = "pt_BR.UTF-8";
-    LC_NAME = "pt_BR.UTF-8";
-    LC_NUMERIC = "pt_BR.UTF-8";
-    LC_PAPER = "pt_BR.UTF-8";
-    LC_TELEPHONE = "pt_BR.UTF-8";
-    LC_TIME = "pt_BR.UTF-8";
   };
 
   environment.systemPackages = with pkgs; [
@@ -66,6 +62,39 @@
     #jetbrains.gateway
   ];
 
+  environment.variables = {
+    NIXOS_HOST = "nixstation";
+    NIXOS_DE = "gnome";
+  };
+  fonts.packages = with pkgs; [ nerdfonts ];
+  hardware.sane.enable = true;
+  hardware.pulseaudio.enable = false;
+
+  i18n.defaultLocale = "en_US.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "pt_BR.UTF-8";
+    LC_IDENTIFICATION = "pt_BR.UTF-8";
+    LC_MEASUREMENT = "pt_BR.UTF-8";
+    LC_MONETARY = "pt_BR.UTF-8";
+    LC_NAME = "pt_BR.UTF-8";
+    LC_NUMERIC = "pt_BR.UTF-8";
+    LC_PAPER = "pt_BR.UTF-8";
+    LC_TELEPHONE = "pt_BR.UTF-8";
+    LC_TIME = "pt_BR.UTF-8";
+  };
+
+  networking.firewall = {
+    enable = true;
+    allowPing = true;
+    allowedTCPPorts = [ 11434 ];
+  };
+
+  nix = {
+    settings = {
+      auto-optimise-store = true;
+    };
+  };
+
   programs = {
     steam = {
       enable = true;
@@ -78,7 +107,7 @@
     dconf.enable = true;
     virt-manager.enable = true;
   };
-
+  security.rtkit.enable = true;
   services = {
     xserver = {
       enable = true;
@@ -86,61 +115,29 @@
       desktopManager.gnome.enable = true;
       displayManager.gdm.wayland = false;
     };
-
-    # gnome.gnome-remote-desktop.enable = true;
     displayManager.autoLogin.enable = true;
     displayManager.autoLogin.user = "thiago";
-
     flatpak.enable = true;
-
     xrdp = {
       enable = false;
       defaultWindowManager = "gnome-remote-desktop";
       openFirewall = true;
     };
-
     pipewire = {
       enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
     };
-
     earlyoom = {
       enable = true;
       freeMemThreshold = 5;
       freeSwapThreshold = 10;
     };
   };
-
-  zramSwap = {
-    enable = true;
-    memoryPercent = 30;
-    algorithm = "zstd";
-  };
-
-  networking.firewall = {
-    enable = true;
-    allowPing = true;
-    allowedTCPPorts = [ 11434 ];
-  };
-
-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd = {
     services."getty@tty1".enable = false;
     services."autovt@tty1".enable = false;
-  };
-  
-  systemd.services = {
-    btrfs-scrub = {
-      description = "Daily Btrfs Scrub";
-      serviceConfig = {
-        Type = "oneshot";
-        Nice = 19;
-        IOSchedulingClass = "idle";
-        ExecStart = "${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B / && ${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B /mnt/hdd0";
-      };
-    };
   };
 
   systemd.timers.btrfs-scrub = {
@@ -152,9 +149,19 @@
     };
   };
 
-  hardware.sane.enable = true;
-  hardware.pulseaudio.enable = false;
-  security.rtkit.enable = true;
+  systemd.services = {
+    btrfs-scrub = {
+      description = "Daily Btrfs Scrub";
+      serviceConfig = {
+        Type = "oneshot";
+        Nice = 19;
+        IOSchedulingClass = "idle";
+        ExecStart = "${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B / && ${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B /mnt/hdd0";
+      };
+    };
+  };
+  system.stateVersion = "24.05"; # keep it!
+  time.timeZone = "America/Sao_Paulo";
   virtualisation = {
     vmware.host.enable = true;
     spiceUSBRedirection.enable = true;
@@ -165,12 +172,9 @@
     };
   };
 
-  nix = {
-    settings = {
-      auto-optimise-store = true;
-    };
+  zramSwap = {
+    enable = true;
+    memoryPercent = 30;
+    algorithm = "zstd";
   };
-
-  fonts.packages = with pkgs; [ nerdfonts ];
-  system.stateVersion = "24.05"; # keep it!
 }
