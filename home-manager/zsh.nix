@@ -1,40 +1,62 @@
-{ pkgs
+{ config
+, lib
+, pkgs
 , ...
 }:
-
+let
+  isWayland = config.custom.sessionType == "wayland";
+in
 {
-  home.file."scripts/lsgpu.sh" = {
-    source = ./scripts/lsgpu.sh;
-    executable = true;
+  options.custom.sessionType = lib.mkOption {
+    type = lib.types.str;
+    default = "x11";
+    description = "The X session type: 'wayland' or 'x11'";
   };
 
-  programs.zsh = {
-    enable = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    initExtra = ''
-      eval "$(direnv hook zsh)"
-    '';
-
-    shellAliases = {
-      "vi" = "nvim";
-      "vim" = "nvim";
-      "ll" = "ls -l";
-      "code" = "code-insiders";
-      "pbcopy" = "xclip -selection clipboard";
-      "pbpaste" = "xclip -selection clipboard -o";
-      "lsgpu" = "$HOME/scripts/lsgpu.sh";
+  config = {
+    home.file."scripts/lsgpu.sh" = {
+      source = ./scripts/lsgpu.sh;
+      executable = true;
     };
 
-    oh-my-zsh = {
+    programs.zsh = {
       enable = true;
-      theme = "bureau";
-      plugins = [
-        "git"
-        "history"
-      ];
-    };
-  };
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+      initExtra = ''
+        eval "$(direnv hook zsh)"
+      '';
 
-  home.packages = with pkgs; [ xclip ];
+      shellAliases = lib.mkMerge [
+        {
+          "vi" = "nvim";
+          "vim" = "nvim";
+          "ll" = "ls -l";
+          "code" = "code-insiders";
+          "lsgpu" = "$HOME/scripts/lsgpu.sh";
+        }
+
+        (lib.mkIf isWayland {
+          "pbcopy" = "wl-copy";
+          "pbpaste" = "wl-paste";
+        })
+
+        (lib.mkIf (!isWayland) {
+          "pbcopy" = "xclip -selection clipboard";
+          "pbpaste" = "xclip -selection clipboard -o";
+        })
+      ];
+
+      oh-my-zsh = {
+        enable = true;
+        theme = "bureau";
+        plugins = [
+          "git"
+          "history"
+        ];
+      };
+    };
+
+    home.packages = with pkgs; [ xclip ];
+  };
 }

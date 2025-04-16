@@ -38,12 +38,11 @@
     username = "thiago";
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
-      # steam
-      inputs.nixvim.packages.x86_64-linux.default
       fira-code
       firefox
       hwinfo
       inkscape
+      inputs.nixvim.packages.x86_64-linux.default
       lazygit
       libinput
       luarocks
@@ -64,8 +63,6 @@
       transmission_4-gtk
       uget
       unzip
-      vivaldi
-      vivaldi-ffmpeg-codecs
       whatsapp-for-linux
       wl-clipboard
       direnv
@@ -79,7 +76,7 @@
       package = (pkgs.vscode.override { isInsiders = true; }).overrideAttrs (_oldAttrs: rec {
         src = builtins.fetchTarball {
           url = "https://update.code.visualstudio.com/latest/linux-x64/insider";
-          sha256 = "1dw89hbd9qxwplan4bmb70x8asd2gpicr83yigd4rd787xm3ifvl";
+          sha256 = "1qi22w461nb2hjn38qhh9m9sdnnczfradq2c7ck2kadl2yn3wfx7";
         };
         version = "latest";
       });
