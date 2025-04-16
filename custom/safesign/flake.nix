@@ -1,4 +1,3 @@
-
 {
   description = "Nix flake for SafeSign Identity Client 4.1.0.0";
 
@@ -9,8 +8,8 @@
 
   outputs = { self, nixpkgs, flake-utils }: flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = import nixpkgs { 
-        inherit system; 
+      pkgs = import nixpkgs {
+        inherit system;
         config = { allowUnfree = true; };
       };
 
@@ -122,7 +121,8 @@
           maintainers = with maintainers; [ ];
         };
       };
-    in {
+    in
+    {
       packages = {
         default = safesignidentityclient;
         unwrapped = safesignUnwrapped;

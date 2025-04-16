@@ -65,7 +65,10 @@
             inherit inputs outputs;
           };
 
-          modules = [ ./home-manager/home.nix ];
+          modules = [
+            ./home-manager/home.nix
+            { custom.sessionType = "wayland"; }
+          ];
         };
         "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
@@ -73,7 +76,10 @@
             inherit inputs outputs;
           };
 
-          modules = [ ./home-manager/home.nix ];
+          modules = [
+            ./home-manager/home.nix
+            { custom.sessionType = "wayland"; }
+          ];
         };
 
       };
