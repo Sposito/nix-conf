@@ -8,11 +8,11 @@
 
   imports = [
     ./gnome.nix
-    ./zsh.nix
-    ./kitty.nix
-    #./zig.nix 
+    ./hyprland.nix
     ./jetbrains.nix
+    ./kitty.nix
     ./polymc.nix
+    ./zsh.nix
   ];
 
   nixpkgs = {
