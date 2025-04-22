@@ -24,7 +24,6 @@ SSH_KEY_PRIV="$HOME/.ssh/id_rsa"
 FLAKE_PATH="./#Nixtest"
 
 ### Helper Functions ###
-
 cleanup_qemu() {
   if [ -f "$QEMU_PID_FILE" ]; then
     echo "🧹 Cleaning up previous QEMU instance..."

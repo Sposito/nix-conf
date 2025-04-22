@@ -1,18 +1,21 @@
 # ~/.config/nixpkgs/home.nix
-{ inputs
-, lib
-, pkgs
-, ...
+{
+  inputs,
+  lib,
+  pkgs,
+  networking,
+  ...
 }:
 {
 
   imports = [
     ./gnome.nix
+    ./hydra.nix
     ./zsh.nix
     ./kitty.nix
-    #./zig.nix 
     ./jetbrains.nix
     ./polymc.nix
+    (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
   ];
 
   nixpkgs = {
@@ -38,37 +41,32 @@
     username = "thiago";
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
-      # steam
-      inputs.nixvim.packages.x86_64-linux.default
+      direnv
       fira-code
       firefox
       hwinfo
       inkscape
+      inputs.nixvim.packages.x86_64-linux.default
       lazygit
       libinput
       luarocks
-      nil
-      nixpkgs-fmt
       (nerdfonts.override {
         fonts = [
           "FiraCode"
           "DroidSansMono"
         ];
       })
+      nil
+      nixpkgs-fmt
       nordic
       obsidian
       rclone
       sysbench
-      telegram-desktop
-      tor-browser
       transmission_4-gtk
       uget
       unzip
-      vivaldi
-      vivaldi-ffmpeg-codecs
       whatsapp-for-linux
       wl-clipboard
-      direnv
     ];
   };
 
@@ -90,7 +88,6 @@
       lfs.enable = true;
       userEmail = "sposito.thiago@gmail.com";
       userName = "Thiago Sposito";
-
     };
     home-manager.enable = true;
   };

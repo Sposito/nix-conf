@@ -1,14 +1,19 @@
 {
-  description = "My personal NixOS Config";
+  description = "NixOS Config";
 
   inputs = {
     disko.url = "github:nix-community/disko";
+    machine-key = {
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "path:custom/hardware-key";
+    };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixvim.url = "github:sposito/nixvim";
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/home-manager/release-24.11";
     };
 
     vscode-extensions = {
@@ -21,8 +26,8 @@
     vs-extensions-pkgs.follows = "vscode-extensions/nixpkgs";
 
     hyprland = {
-      url = "github:hyprwm/hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:hyprwm/hyprland";
     };
   };
 
