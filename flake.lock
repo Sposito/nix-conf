@@ -672,6 +672,26 @@
         "type": "github"
       }
     },
+    "machine-key": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-vntgqps2a4NtPFfBrBccfIGVVvKFbKP18G0Jq6nZZVg=",
+        "path": "custom/hardware-key",
+        "type": "path"
+      },
+      "original": {
+        "path": "custom/hardware-key",
+        "type": "path"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -990,6 +1010,7 @@
         "ghostty": "ghostty",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
+        "machine-key": "machine-key",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable_2",
         "nixvim": "nixvim",
