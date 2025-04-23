@@ -27,7 +27,7 @@ in
     openssh.authorizedKeys.keyFiles = [
       (builtins.fetchurl {
         url = "https://github.com/sposito.keys";
-        sha256 = "0pap85cnr10c6wwwkp5hl7q4w0fgh8bvn0cmr0vwvhwz6r89jpra";
+        sha256 = "0bwqj8si0q6kp9cdjgkp9kfz17f24wf476zqzvxbygn6f4av0wh2";
       })
     ];
 
