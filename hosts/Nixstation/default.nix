@@ -1,5 +1,6 @@
-{ pkgs
-, ...
+{
+  pkgs,
+  ...
 }:
 {
 
@@ -163,7 +164,7 @@
   system.stateVersion = "24.05"; # keep it!
   time.timeZone = "America/Sao_Paulo";
   virtualisation = {
-    vmware.host.enable = true;
+    vmware.host.enable = false;
     spiceUSBRedirection.enable = true;
     libvirtd = {
       enable = true;
