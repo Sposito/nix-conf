@@ -1,9 +1,9 @@
 { pkgs, ... }: {
 
   imports = [
-    ./hardware-configuration.nix
-    ./apple.nix
     ../common/default.nix
+    ./apple.nix
+    ./hardware-configuration.nix
   ];
 
   networking.hostName = "Nixbook";

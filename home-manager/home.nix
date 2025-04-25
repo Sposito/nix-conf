@@ -41,7 +41,10 @@
     username = "thiago";
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
+<<<<<<< HEAD
       direnv
+=======
+>>>>>>> d0de9f26861fb72aa9e5692e594f85ada363ccb0
       fira-code
       firefox
       hwinfo
@@ -77,7 +80,11 @@
       package = (pkgs.vscode.override { isInsiders = true; }).overrideAttrs (_oldAttrs: rec {
         src = builtins.fetchTarball {
           url = "https://update.code.visualstudio.com/latest/linux-x64/insider";
+<<<<<<< HEAD
           sha256 = "16n7mckwaiw6ckllp1byg2jzq6r7480jj5r4nsk57c1rz58s7gjv";
+=======
+          sha256 = "1qi22w461nb2hjn38qhh9m9sdnnczfradq2c7ck2kadl2yn3wfx7";
+>>>>>>> d0de9f26861fb72aa9e5692e594f85ada363ccb0
         };
         version = "latest";
       });

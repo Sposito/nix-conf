@@ -140,6 +140,21 @@
     services."getty@tty1".enable = false;
     services."autovt@tty1".enable = false;
   };
+<<<<<<< HEAD
+=======
+
+  systemd.services = {
+    btrfs-scrub = {
+      description = "Daily Btrfs Scrub";
+      serviceConfig = {
+        Type = "oneshot";
+        Nice = 19;
+        IOSchedulingClass = "idle";
+        ExecStart = "${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B / && ${pkgs.btrfs-progs}/bin/btrfs scrub start -n 2 -B /mnt/hdd0";
+      };
+    };
+  };
+>>>>>>> d0de9f26861fb72aa9e5692e594f85ada363ccb0
 
   systemd.timers.btrfs-scrub = {
     description = "Run Btrfs Scrub Daily";
