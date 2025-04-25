@@ -57,7 +57,7 @@
     gnomeExtensions.pop-shell
     cudatoolkit
     act
-    vmware-workstation
+    # vmware-workstation
     xorg.xauth
     btrfs-progs
     #jetbrains.gateway
