@@ -15,7 +15,8 @@
     ./kitty.nix
     ./jetbrains.nix
     ./polymc.nix
-    (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
+    ./ai-editors.nix
+    # (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
   ];
 
   nixpkgs = {
@@ -76,7 +77,8 @@
 
       package = (pkgs.vscode.override { isInsiders = true; }).overrideAttrs (_oldAttrs: rec {
         src = builtins.fetchTarball {
-          sha256 = "1qi22w461nb2hjn38qhh9m9sdnnczfradq2c7ck2kadl2yn3wfx7";
+          url = "https://update.code.visualstudio.com/latest/linux-x64/insider";
+          sha256 = "1nbdyif2j6jbbd4c0nczr89mvd2d60w8q3wj0wv9ycksikhswvy5";
         };
         version = "latest";
       });
