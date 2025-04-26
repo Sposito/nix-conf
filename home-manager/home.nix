@@ -9,13 +9,14 @@
 {
 
   imports = [
+    ./ai-editors.nix
+    ./game-emu.nix
     ./gnome.nix
     ./hydra.nix
-    ./zsh.nix
-    ./kitty.nix
     ./jetbrains.nix
+    ./kitty.nix
     ./polymc.nix
-    ./ai-editors.nix
+    ./zsh.nix
     # (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
   ];
 
