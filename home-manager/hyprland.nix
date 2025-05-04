@@ -4,29 +4,36 @@
 }:
 
 {
+  programs.waybar = {
+    enable = true;
+    systemd.enable = true;
+  };
+  home.packages = with pkgs; [
+    waybar
+  ];
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
       "$mod" = "SUPER";
       bind = [
         "$mod, q, exec, kitty"
-        "$mod, c, killactive," 
+        "$mod, c, killactive,"
         "$mod, m, exit,"
-        "$mod, e, exec, $fileManager" 
-        "$mod, v, togglefloating" 
+        "$mod, e, exec, $fileManager"
+        "$mod, v, togglefloating"
         "$mod, r, exec, $menu"
-        "$mod, p, pseudo,"       # dwindle
-        "$mod, j, togglesplit,"  # dwindle
+        "$mod, p, pseudo," # dwindle
+        "$mod, j, togglesplit," # dwindle
 
-        "$mod, 1, workspace, 1" 
-        "$mod, 2, workspace, 2" 
-        "$mod, 3, workspace, 3" 
-        "$mod, 4, workspace, 4" 
-        "$mod, 5, workspace, 5" 
-        "$mod, 6, workspace, 6" 
-        "$mod, 7, workspace, 7" 
-        "$mod, 8, workspace, 8" 
-        "$mod, 9, workspace, 9" 
+        "$mod, 1, workspace, 1"
+        "$mod, 2, workspace, 2"
+        "$mod, 3, workspace, 3"
+        "$mod, 4, workspace, 4"
+        "$mod, 5, workspace, 5"
+        "$mod, 6, workspace, 6"
+        "$mod, 7, workspace, 7"
+        "$mod, 8, workspace, 8"
+        "$mod, 9, workspace, 9"
         "$mod, 0, workspace, 10"
 
         "$mod SHIFT, 1, movetoworkspace, 1"
@@ -46,7 +53,27 @@
         "$mod, mouse_up, workspace, e-1"
       ];
 
-      bindm = [];
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
+      ];
+
+      bindel = [
+        ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+        ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+        ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+        ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+        ",XF86MonBrightnessUp, exec, brightnessctl s 10%+"
+        ",XF86MonBrightnessDown, exec, brightnessctl s 10%-"
+      ];
+
+      bindl = [
+        ", XF86AudioNext, exec, playerctl next"
+        ", XF86AudioPause, exec, playerctl play-pause"
+        ", XF86AudioPlay, exec, playerctl play-pause"
+        ", XF86AudioPrev, exec, playerctl previous"
+      ];
+
       monitor = ",preferred,auto,auto";
       env = [
         "XCURSOR_SIZE,24"
@@ -57,6 +84,7 @@
         gaps_in = 2;
         gaps_out = 3;
         border_size = 1;
+
         #  col = {
         #   active_border = "rgba(33ccffee) rgba(00ff99ee) 45deg";
         #   inactive_border = "rgba(595959aa)";
