@@ -5,13 +5,14 @@
 {
 
   imports = [
-    ./hardware-configuration.nix
+    ../../services
     ../common/default.nix
-    ../common/network.nix
-    ../common/screen.nix
-    ../common/rclone.nix
-    ../common/nvidia/default.nix
     ../common/keychron.nix
+    ../common/network.nix
+    ../common/nvidia/default.nix
+    ../common/rclone.nix
+    ../common/screen.nix
+    ./hardware-configuration.nix
   ];
 
   systemd.services.custom-motd = {
@@ -46,8 +47,8 @@
     loader.efi.canTouchEfiVariables = true;
     kernelParams = [
       # "nvidia-drm.modeset=1"
-      # "intel_iommu=on"
-      # "iommu=pt"
+      "intel_iommu=on"
+      "iommu=pt"
     ];
   };
 
