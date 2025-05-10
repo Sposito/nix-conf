@@ -1,8 +1,9 @@
-{ config
-, inputs
-, lib
-, pkgs
-, ...
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 {
   imports = [ ./users/thiago/default.nix ];
@@ -10,12 +11,10 @@
   boot.loader.systemd-boot.enable = true;
   environment = {
     shells = with pkgs; [ zsh ];
-    etc = lib.mapAttrs'
-      (name: value: {
-        name = "nix/path/${name}";
-        value.source = value.flake;
-      })
-      config.nix.registry;
+    etc = lib.mapAttrs' (name: value: {
+      name = "nix/path/${name}";
+      value.source = value.flake;
+    }) config.nix.registry;
     systemPackages = with pkgs; [
       exfat
       file
@@ -23,14 +22,18 @@
       git
       gnupg
       home-manager
+      keymapp
       opensc
+      pciutils
       pcsc-safenet
       pcsctools
       pkcs11helper
       sops
       wget
+      zsa-udev-rules
     ];
   };
+  hardware.keyboard.zsa.enable = true;
   networking.networkmanager.enable = true;
   nix = {
     registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
