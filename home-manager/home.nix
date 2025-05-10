@@ -2,13 +2,14 @@
 {
   inputs,
   lib,
-  pkgs,
   networking,
+  pkgs,
   ...
 }:
 {
 
   imports = [
+    ./blender
     ./ai-editors.nix
     ./game-emu.nix
     ./gnome.nix
@@ -49,6 +50,7 @@
       hwinfo
       inkscape
       inputs.nixvim.packages.x86_64-linux.default
+      keymapp
       lazygit
       libinput
       luarocks
@@ -62,6 +64,8 @@
       nixpkgs-fmt
       nordic
       obsidian
+      python3
+      python3Packages.pip
       rclone
       sysbench
       transmission_4-gtk
