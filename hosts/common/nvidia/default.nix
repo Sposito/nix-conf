@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   hardware = {
     graphics = {
@@ -10,7 +15,7 @@
       modesetting.enable = true;
       powerManagement.enable = false;
       powerManagement.finegrained = false;
-      open = false; #keep it like that for now, unstable!!
+      open = false; # keep it like that for now, unstable!!
       nvidiaSettings = true;
       package = config.boot.kernelPackages.nvidiaPackages.stable;
     };
@@ -26,9 +31,7 @@
     glxinfo
     libepoxy
     libglvnd
-    # nvidia-container-toolkit
+    nvidia-container-toolkit
   ];
 
-
 }
-
