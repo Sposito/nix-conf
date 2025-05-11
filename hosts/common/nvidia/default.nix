@@ -21,9 +21,14 @@
     };
   };
 
-  services.xserver = {
-    enable = true;
-    videoDrivers = [ "nvidia" ];
+  services = {
+    sunshine.enable = true;
+    sunshine.autoStart = true;
+    sunshine.openFirewall = true;
+    xserver = {
+      enable = true;
+      videoDrivers = [ "nvidia" ];
+    };
   };
   nixpkgs.config.cudaSupport = true;
   environment.systemPackages = with pkgs; [
@@ -32,6 +37,8 @@
     libepoxy
     libglvnd
     nvidia-container-toolkit
+    cudaPackages.cudatoolkit
+    cudaPackages.cuda_nvcc
   ];
 
 }
