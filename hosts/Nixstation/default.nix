@@ -5,7 +5,6 @@
 {
 
   imports = [
-    ../../services
     ../common/default.nix
     ../common/keychron.nix
     ../common/network.nix
