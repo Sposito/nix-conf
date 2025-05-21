@@ -45,9 +45,9 @@
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     kernelParams = [
-      # "nvidia-drm.modeset=1"
       "intel_iommu=on"
       "iommu=pt"
+      "vfio-pci.ids=10de:2204,10de:1aef"
     ];
   };
 

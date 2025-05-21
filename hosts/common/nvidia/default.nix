@@ -22,9 +22,17 @@
   };
 
   services = {
-    sunshine.enable = true;
-    sunshine.autoStart = true;
-    sunshine.openFirewall = true;
+    sunshine = {
+      enable = true;
+      autoStart = true;
+      openFirewall = true;
+      package = pkgs.sunshine.overrideAttrs (old: {
+        cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+          "-DSUNSHINE_ENABLE_CUDA=OFF"
+          "-DCUDA_FAIL_ON_MISSING=OFF"
+        ];
+      });
+    };
     xserver = {
       enable = true;
       videoDrivers = [ "nvidia" ];
