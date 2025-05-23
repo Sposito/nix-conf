@@ -68,8 +68,11 @@
     NIXOS_DE = "gnome";
   };
   fonts.packages = with pkgs; [ nerdfonts ];
-  hardware.sane.enable = true;
-  hardware.pulseaudio.enable = false;
+  hardware = {
+    sane.enable = true;
+    pulseaudio.enable = false;
+    graphics.enable = true;
+  };
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
@@ -115,6 +118,7 @@
       displayManager.gdm.enable = true;
       desktopManager.gnome.enable = true;
       displayManager.gdm.wayland = false;
+      videoDrivers = [ "nvidia" ];
     };
     displayManager.autoLogin.enable = true;
     displayManager.autoLogin.user = "thiago";
