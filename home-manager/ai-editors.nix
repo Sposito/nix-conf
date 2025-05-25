@@ -10,7 +10,8 @@ let
         "code-cursor"
       ];
   };
-in {
+in
+{
   home.packages = with nixpkgs-unstable; [
     windsurf
     code-cursor

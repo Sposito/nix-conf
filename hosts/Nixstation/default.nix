@@ -1,6 +1,5 @@
-{
-  pkgs,
-  ...
+{ pkgs
+, ...
 }:
 {
 
@@ -44,13 +43,6 @@
   boot = {
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-    kernelParams = [
-      "intel_iommu=on"
-      "iommu=pt"
-      "vfio-pci.ids=10de:2204,10de:1aef"
-    ];
-    kernelModules = [ "vfio_pci" "vfio" "vfio_iommu_type1" "vfio_virqfd" ];
-    blacklistedKernelModules = [ "nouveau" ];
   };
 
   environment.systemPackages = with pkgs; [
