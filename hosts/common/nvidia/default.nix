@@ -1,10 +1,13 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 {
+  imports = [
+    ./passthrough.nix
+  ];
+
   hardware = {
     graphics = {
       enable = true;

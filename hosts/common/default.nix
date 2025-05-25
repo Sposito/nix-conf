@@ -1,9 +1,8 @@
-{
-  config,
-  inputs,
-  lib,
-  pkgs,
-  ...
+{ config
+, inputs
+, lib
+, pkgs
+, ...
 }:
 {
   imports = [ ./users/thiago/default.nix ];
@@ -11,10 +10,12 @@
   boot.loader.systemd-boot.enable = true;
   environment = {
     shells = with pkgs; [ zsh ];
-    etc = lib.mapAttrs' (name: value: {
-      name = "nix/path/${name}";
-      value.source = value.flake;
-    }) config.nix.registry;
+    etc = lib.mapAttrs'
+      (name: value: {
+        name = "nix/path/${name}";
+        value.source = value.flake;
+      })
+      config.nix.registry;
     systemPackages = with pkgs; [
       exfat
       file

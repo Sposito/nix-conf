@@ -5,9 +5,10 @@ let
     system = "x86_64-linux";
     config.allowUnfree = true;
     config.allowUnfreePredicate = pkg:
-      builtins.elem (lib.getName pkg) [];
+      builtins.elem (lib.getName pkg) [ ];
   };
-in {
+in
+{
   home.packages = with nixpkgs-unstable; [
     torzu
   ];

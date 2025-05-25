@@ -8,11 +8,11 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      unstable,
-      flake-utils,
+    { self
+    , nixpkgs
+    , unstable
+    , flake-utils
+    ,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:

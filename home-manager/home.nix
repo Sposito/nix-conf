@@ -1,10 +1,9 @@
 # ~/.config/nixpkgs/home.nix
-{
-  inputs,
-  lib,
-  networking,
-  pkgs,
-  ...
+{ inputs
+, lib
+, networking
+, pkgs
+, ...
 }:
 {
 
