@@ -25,6 +25,9 @@ in
           echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
         done
         modprobe -i vfio-pci
+        for DEV in $DEVS; do
+          echo $DEV > /sys/bus/pci/drivers/vfio-pci/bind
+        done
       '';
     };
 
