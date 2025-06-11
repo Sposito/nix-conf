@@ -26,7 +26,6 @@ in
       syntaxHighlighting.enable = true;
       initExtra = ''
         eval "$(direnv hook zsh)"
-        export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"
       '';
 
       shellAliases = lib.mkMerge [

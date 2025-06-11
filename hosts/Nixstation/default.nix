@@ -62,10 +62,12 @@
     NIXOS_HOST = "nixstation";
     NIXOS_DE = "gnome";
   };
-  fonts.packages = with pkgs; [ nerdfonts ];
+  fonts.packages = with pkgs.nerd-fonts; [
+    droid-sans-mono
+    fira-code
+  ];
   hardware = {
     sane.enable = true;
-    pulseaudio.enable = false;
     graphics.enable = true;
   };
 
@@ -129,6 +131,7 @@
       alsa.support32Bit = true;
       pulse.enable = true;
     };
+    pulseaudio.enable = false;
     earlyoom = {
       enable = true;
       freeMemThreshold = 5;
