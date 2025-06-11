@@ -52,15 +52,7 @@
   services.samba = {
     enable = true;
     openFirewall = true;
-    shares = {
-      shared = {
-        path = "/home/thiago/Downloads/oblivion";
-        browseable = true;
-        writable = false;
-        guestOk = true;
-        "force user" = "thiago";
-      };
-    };
+
     settings = {
       global = {
         "workgroup" = "WORKGROUP";
@@ -75,6 +67,13 @@
         "guest account" = "nobody";
         "map to guest" = "bad user";
         security = "user";
+        # shared = {
+        #  path = "/home/thiago/Downloads/oblivion";
+        #  browseable = true;
+        #  writable = false;
+        #  guestOk = true;
+        #  "force user" = "thiago";
+        # };
       };
 
       # shares = {

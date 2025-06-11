@@ -1,9 +1,10 @@
 # ~/.config/nixpkgs/home.nix
-{ inputs
-, lib
-, networking
-, pkgs
-, ...
+{
+  inputs,
+  lib,
+  networking,
+  pkgs,
+  ...
 }:
 {
 
@@ -41,6 +42,10 @@
 
   home = {
     username = "thiago";
+    fonts.packages = with pkgs; [
+      nerd-fonts.fira-code
+      nerd-fonts.droid-sans-mono
+    ];
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
       direnv
@@ -53,12 +58,6 @@
       lazygit
       libinput
       luarocks
-      (nerdfonts.override {
-        fonts = [
-          "FiraCode"
-          "DroidSansMono"
-        ];
-      })
       nil
       nixpkgs-fmt
       nordic
@@ -73,6 +72,7 @@
       whatsapp-for-linux
       wl-clipboard
     ];
+
   };
 
   programs = {

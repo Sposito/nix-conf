@@ -8,12 +8,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
       url = "path:custom/hardware-key";
     };
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixvim.url = "github:sposito/nixvim";
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:nix-community/home-manager/release-24.11";
+      url = "github:nix-community/home-manager/release-25.05";
     };
 
     vscode-extensions = {
@@ -32,10 +32,11 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , home-manager
-    , ...
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      ...
     }@inputs:
     let
       inherit (self) outputs;
