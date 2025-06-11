@@ -1,11 +1,11 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  pkgs,
+  ...
 }:
 {
   imports = [
-    ./passthrough.nix
+    #  ./passthrough.nix
   ];
 
   hardware = {
@@ -26,9 +26,9 @@
 
   services = {
     sunshine = {
-      enable = true;
-      autoStart = true;
-      openFirewall = true;
+      enable = false;
+      # autoStart = true;
+      # openFirewall = true;
       package = pkgs.sunshine.overrideAttrs (old: {
         cmakeFlags = (old.cmakeFlags or [ ]) ++ [
           "-DSUNSHINE_ENABLE_CUDA=OFF"
@@ -47,7 +47,7 @@
     glxinfo
     libepoxy
     libglvnd
-    looking-glass-client
+    #looking-glass-client
     nvidia-container-toolkit
     cudaPackages.cudatoolkit
     cudaPackages.cuda_nvcc
