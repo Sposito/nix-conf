@@ -666,15 +666,14 @@
         ]
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-vntgqps2a4NtPFfBrBccfIGVVvKFbKP18G0Jq6nZZVg=",
         "path": "custom/hardware-key",
         "type": "path"
       },
       "original": {
         "path": "custom/hardware-key",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "nix-darwin": {
       "inputs": {

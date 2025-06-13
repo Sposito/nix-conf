@@ -2,7 +2,6 @@
 {
   inputs,
   lib,
-  networking,
   pkgs,
   ...
 }:
@@ -42,10 +41,10 @@
 
   home = {
     username = "thiago";
-    fonts.packages = with pkgs; [
-      nerd-fonts.fira-code
-      nerd-fonts.droid-sans-mono
-    ];
+    #   fonts.packages = with pkgs; [
+    # nerd-fonts.fira-code
+    # nerd-fonts.droid-sans-mono
+    #];
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
       direnv
