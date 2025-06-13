@@ -15,6 +15,7 @@
     ./hydra.nix
     ./jetbrains.nix
     ./kitty.nix
+    ./maker.nix
     ./polymc.nix
     ./zsh.nix
     # (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
