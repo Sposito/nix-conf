@@ -87,7 +87,10 @@
   networking.firewall = {
     enable = true;
     allowPing = true;
-    allowedTCPPorts = [ 11434 ];
+    allowedTCPPorts = [
+      11434
+      8888
+    ];
   };
 
   nix = {

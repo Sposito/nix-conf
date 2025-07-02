@@ -8,9 +8,14 @@
       enable = true;
       allowPing = true;
       allowedTCPPorts = [
+        2375
+        4780
         11470
         25565
-        2375
+      ];
+      allowedUDPPorts = [
+        8888
+        8899
       ];
     };
   };
