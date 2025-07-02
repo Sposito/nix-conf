@@ -1,0 +1,6 @@
+./statlogger
+*.db
+.idea/
+.code/
+./result/*
+__pycache__/**/*
