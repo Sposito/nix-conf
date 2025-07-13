@@ -1,4 +1,110 @@
+# === General OS/Editor Noise ===
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+*.orig
+*.log
+*.lock
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# === Editor Configs ===
+.vscode/
+.idea/
+*.code-workspace
+*.sublime*
+*.iml
+
+# === Nix Specific ===
+/result
+/result-*
+/.nix-channels/
+/.nix-defexpr/
+/.nix-profile/
+/.cache/
+*.drv
+*.gc-daemon-log
+
+# Do NOT ignore flake.nix or flake.lock
+# If you ever store nix builds under a different dir, add it below:
+# /build/
+
+# === Zig ===
+**/.zig-cache/
+**/zig-out/
+
+# === Rust ===
+**/target/
+Cargo.lock
+
+# === C / C++ / Zig / System ===
+**/build/
+**/bin/
+**/obj/
+**/*.o
+**/*.a
+**/*.so
+**/*.d
+**/*.out
+**/*.exe
+**/*.dll
+
+# === Python ===
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.tox/
+**/.coverage
+**/.hypothesis/
+
+# === JavaScript / TypeScript / Node ===
+**/node_modules/
+**/dist/
+**/build/
+**/*.tsbuildinfo
+**/.eslintcache
+**/.parcel-cache/
+
+# === Other Languages ===
+**/.stack-work/          # Haskell
+**/elm-stuff/            # Elm
+**/.next/                # Next.js
+**/.nuxt/                # Nuxt.js
+**/.dart_tool/           # Dart
+**/.gradle/              # Java
+**/target/               # Java / Rust / JVM
+
+# === Dotfiles and Secrets ===
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.crt
+
+# === SQLite and data ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === Compressed files ===
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+*.xz
+
+# misc
 custom/*/result
 custom/*/result/*
+**/.zig-cache/
 result/*
 result/

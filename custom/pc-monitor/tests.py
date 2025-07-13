@@ -4,7 +4,7 @@ import sqlite3
 import os
 import subprocess
 
-EXECUTABLE = "./pc-monitor"
+EXECUTABLE = "./test-result/pc-monitor"
 DB_PATH = "./sysstats.db"
 FAKE_NVIDIA_SMI_PATH = "./fake_nvidia_smi"
 
@@ -51,6 +51,9 @@ class TestPCMonitor(unittest.TestCase):
             os.remove(DB_PATH)
         if os.path.exists(EXECUTABLE):
             os.remove(EXECUTABLE)
+
+        if not os.path.exists("./test-result"):
+            os.makedirs("./test-result")
 
         # Capture compilation output
         self.compile_result = subprocess.run(
@@ -127,3 +130,4 @@ class TestPCMonitor(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    quit(0)
