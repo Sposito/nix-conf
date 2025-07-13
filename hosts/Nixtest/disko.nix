@@ -41,8 +41,14 @@
                   mountpoint = "/var/log";
                 };
               };
-              extraArgs = [ "-L" "nixos-root" ];
-              mountOptions = [ "compress=zstd" "noatime" ];
+              extraArgs = [
+                "-L"
+                "nixos-root"
+              ];
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
             };
           };
         };

@@ -36,11 +36,16 @@ in
       "iommu=pt"
     ];
 
-    kernelModules = [ "vfio_pci" "vfio" "vfio_iommu_type1" "vfio_virqfd" ];
+    kernelModules = [
+      "vfio_pci"
+      "vfio"
+      "vfio_iommu_type1"
+      "vfio_virqfd"
+    ];
     blacklistedKernelModules = [ "nouveau" ];
   };
 
   environment.systemPackages = with pkgs; [
-    vfioBindScript         # optional manual tool
+    vfioBindScript # optional manual tool
   ];
 }

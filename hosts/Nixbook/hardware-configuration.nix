@@ -1,9 +1,10 @@
-{ config
-, lib
-, pkgs
-, modulesPath
-, inputs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  inputs,
+  ...
 }:
 
 let
@@ -16,7 +17,13 @@ in
   ];
 
   boot = {
-    initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "nvme"
+      "usbhid"
+      "usb_storage"
+      "sd_mod"
+    ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
