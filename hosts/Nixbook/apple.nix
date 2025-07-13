@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   boot.kernelParams = [
@@ -9,8 +14,7 @@
     powerUpCommands = lib.mkBefore "${pkgs.kmod}/bin/modprobe brcmfmac";
     powerDownCommands = lib.mkBefore "${pkgs.kmod}/bin/rmmod brcmfmac";
   };
-  hardware.facetimehd.enable = lib.mkDefault
-    (config.nixpkgs.config.allowUnfree or false);
+  hardware.facetimehd.enable = lib.mkDefault (config.nixpkgs.config.allowUnfree or false);
 
   services.mbpfan.enable = lib.mkDefault true;
 }

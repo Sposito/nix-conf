@@ -4,8 +4,14 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
       in
@@ -26,18 +32,26 @@
           '';
         };
 
-        nixosModules.fan-daemon = { config, lib, pkgs, ... }: {
-          systemd.services.fan-daemon = {
-            description = "LuaJIT Fan Control Daemon";
-            wantedBy = [ "multi-user.target" ];
-            serviceConfig = {
-              ExecStart = "${self.packages.${system}.fan-daemon}/bin/fan-daemon";
-              Restart = "always";
-              RestartSec = 5;
-              StandardOutput = "journal";
-              StandardError = "journal";
+        nixosModules.fan-daemon =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+          {
+            systemd.services.fan-daemon = {
+              description = "LuaJIT Fan Control Daemon";
+              wantedBy = [ "multi-user.target" ];
+              serviceConfig = {
+                ExecStart = "${self.packages.${system}.fan-daemon}/bin/fan-daemon";
+                Restart = "always";
+                RestartSec = 5;
+                StandardOutput = "journal";
+                StandardError = "journal";
+              };
             };
           };
-        };
-      });
+      }
+    );
 }
