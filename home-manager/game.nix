@@ -18,7 +18,6 @@ in
   ];
 
   home.packages = with nixpkgs-unstable; [
-    torzu
     heroic
     hydralauncher
     polymc
