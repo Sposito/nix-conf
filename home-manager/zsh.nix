@@ -24,7 +24,7 @@ in
       enable = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
-      initExtra = ''
+      initContent = ''
         eval "$(direnv hook zsh)"
       '';
 
@@ -44,7 +44,7 @@ in
         })
 
         (lib.mkIf (!isWayland) {
-          "pbcopy" = "xclip -selection clipboard";
+          "pbcopy" = "xclip -selection clipboard -i";
           "pbpaste" = "xclip -selection clipboard -o";
         })
       ];

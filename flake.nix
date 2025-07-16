@@ -84,7 +84,7 @@
 
           modules = [
             ./home-manager/home.nix
-            { custom.sessionType = "wayland"; }
+            { custom.sessionType = "x11"; }
           ];
         };
 
