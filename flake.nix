@@ -94,5 +94,8 @@
         type = "app";
         program = "${inputs.disko.packages.x86_64-linux.disko}/bin/disko-install";
       };
+
+      # nix develop .#zig
+      devShells.x86_64-linux = {};
     };
 }
