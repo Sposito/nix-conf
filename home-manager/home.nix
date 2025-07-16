@@ -5,20 +5,22 @@
   pkgs,
   ...
 }:
+let
+  nixpkgs-unstable = import inputs.nixpkgs-unstable {
+    system = "x86_64-linux";
+    config.allowUnfree = true;
+    config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ ];
+  };
+in
 {
 
   imports = [
-    ./blender
-    ./ai-editors.nix
-    ./game-emu.nix
+    ./game.nix
     ./gnome.nix
     ./hydra.nix
-    ./jetbrains.nix
     ./kitty.nix
     ./maker.nix
-    ./polymc.nix
     ./zsh.nix
-    # (lib.mkIf (lib.strings.hasInfix "Nixbook" (networking.hostName)) ./hyprland.nix)
   ];
 
   nixpkgs = {
@@ -70,24 +72,12 @@
       uget
       unzip
       whatsapp-for-linux
-      wl-clipboard
     ];
 
   };
 
   programs = {
-    vscode = {
-      enable = true;
-
-      package = (pkgs.vscode.override { isInsiders = true; }).overrideAttrs (_oldAttrs: rec {
-        src = builtins.fetchTarball {
-          url = "https://update.code.visualstudio.com/latest/linux-x64/insider";
-          sha256 = "1nbdyif2j6jbbd4c0nczr89mvd2d60w8q3wj0wv9ycksikhswvy5";
-        };
-        version = "latest";
-      });
-    };
-
+    vscode.enable = true;
     git = {
       enable = true;
       lfs.enable = true;
