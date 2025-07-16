@@ -17,7 +17,6 @@ in
   imports = [
     ./game.nix
     ./gnome.nix
-    ./hydra.nix
     ./kitty.nix
     ./maker.nix
     ./zsh.nix
