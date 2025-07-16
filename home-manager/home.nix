@@ -1,9 +1,8 @@
 # ~/.config/nixpkgs/home.nix
-{
-  inputs,
-  lib,
-  pkgs,
-  ...
+{ inputs
+, lib
+, pkgs
+, ...
 }:
 let
   nixpkgs-unstable = import inputs.nixpkgs-unstable {

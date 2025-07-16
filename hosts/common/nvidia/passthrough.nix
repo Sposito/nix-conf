@@ -1,6 +1,5 @@
-{
-  pkgs,
-  ...
+{ pkgs
+, ...
 }:
 let
   # Optional helper for manual (re)binding at runtime

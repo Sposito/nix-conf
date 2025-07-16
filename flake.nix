@@ -30,11 +30,10 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      ...
+    { self
+    , nixpkgs
+    , home-manager
+    , ...
     }@inputs:
     let
       inherit (self) outputs;
@@ -94,6 +93,6 @@
       };
 
       # nix develop .#zig
-      devShells.x86_64-linux = {};
+      devShells.x86_64-linux = { };
     };
 }
