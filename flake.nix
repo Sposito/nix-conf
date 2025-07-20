@@ -3,14 +3,11 @@
 
   inputs = {
     disko.url = "github:nix-community/disko";
-    machine-key = {
-      inputs.flake-utils.follows = "flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "path:custom/hardware-key";
-    };
+    disko.inputs.nixpkgs.follows = "nixpkgs";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixvim.url = "github:sposito/nixvim";
+
+
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager/release-25.05";
@@ -18,15 +15,13 @@
 
     vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";
+      inputs.nixpkgs.follows = "nixpkgs"; 
     };
 
     flake-utils.follows = "vscode-extensions/flake-utils";
+    flake-utils.inputs.nixpkgs.follows = "nixpkgs";
     vs-extensions-pkgs.follows = "vscode-extensions/nixpkgs";
 
-    hyprland = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:hyprwm/hyprland";
-    };
   };
 
   outputs =
@@ -92,7 +87,6 @@
         program = "${inputs.disko.packages.x86_64-linux.disko}/bin/disko-install";
       };
 
-      # nix develop .#zig
       devShells.x86_64-linux = { };
     };
 }

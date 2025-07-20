@@ -53,7 +53,6 @@ in
       firefox
       hwinfo
       inkscape
-      inputs.nixvim.packages.x86_64-linux.default
       keymapp
       lazygit
       libinput

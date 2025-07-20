@@ -32,7 +32,6 @@ in
           "vi" = "nvim";
           "vim" = "nvim";
           "ll" = "ls -l";
-          "code" = "code-insiders";
           "lsgpu" = "$HOME/scripts/lsgpu.sh";
           "gedit" = "gnome-text-editor";
         }
