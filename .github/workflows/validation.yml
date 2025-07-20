@@ -1,5 +1,7 @@
 on:
   push:
+  schedule:
+    - cron: '0 3 * * 1'
   
 jobs:
   flake-validation:
@@ -9,7 +11,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v13
+      - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flake-checker-action@v12
         with:
           send-statistics: false
+      - if: github.event_name == 'push'
+        run: |
+          nix flake check --show-trace
+          nix build .#nixosConfigurations.Nixstation.config.system.build.toplevel
+          nix build .#homeConfigurations."thiago@Nixstation".activationPackage
+
+

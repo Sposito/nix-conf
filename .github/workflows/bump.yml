@@ -1,0 +1,60 @@
+name: bump-flake-minor
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check if last commit was a bump
+        id: skipcheck
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          echo "Last commit message: $msg"
+          if [[ "$msg" == "chore: bump flake version"* ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump version in flake.nix (description field)
+        if: steps.skipcheck.outputs.skip == 'false'
+        id: bump
+        run: |
+          current=$(grep -Po 'description\s*=\s*"[^"]*v\K[0-9]+\.[0-9]+\.[0-9]+' flake.nix || echo 0.0.0)
+          echo "Current version: $current"
+
+          major=$(echo "$current" | cut -d. -f1)
+          minor=$(echo "$current" | cut -d. -f2)
+          patch=0
+
+          new="v$major.$((minor + 1)).$patch"
+          echo "Bumping to $new"
+
+          # Update only the version inside the description string
+          sed -i "s/\(description\s*=\s*\"[^\"]*v\)[0-9]\+\.[0-9]\+\.[0-9]\+\(\".*\)/\1$((minor + 1)).$patch\2/" flake.nix
+
+          echo "new_version=$new" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and tag
+        if: steps.skipcheck.outputs.skip == 'false'
+        run: |
+          version=${{ steps.bump.outputs.new_version }}
+          git commit -am "chore: bump flake version to $version"
+          git tag "$version"
+          git push origin HEAD --tags
