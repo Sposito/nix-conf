@@ -1,5 +1,6 @@
 {
-  description = "NixOS Config";
+  description = "NixOS Config v0.0.0";
+
 
   inputs = {
     disko.url = "github:nix-community/disko";
