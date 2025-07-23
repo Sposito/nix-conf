@@ -51,7 +51,7 @@
             shfmt.enable = true;
           };
           diagnostics = {
-            luacheck.enable = true;
+          #  luacheck.enable = true;
           };
           code_actions = {
             statix.enable = true;
@@ -61,6 +61,36 @@
       conform-nvim.enable = true;
 
     };
-  };
+    extraConfigLua = ''
+    local cmp = require'cmp'
+
+    cmp.setup({
+      mapping = {
+        ['<C-Space>'] = cmp.mapping.complete(),        -- trigger manually
+        ['<CR>'] = cmp.mapping.confirm({ select = true }),  -- confirm with Enter
+        ['<Tab>'] = cmp.mapping.select_next_item(),
+        ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+      },
+      sources = {
+        { name = 'nvim_lsp' },
+        { name = 'buffer' },
+        { name = 'path' },
+      },
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local buf = args.buf
+          local opts = { buffer = buf }
+
+          vim.keymap.set("n", "gd", lsp.buf.definition, opts)
+          vim.keymap.set("n", "gr", lsp.buf.references, opts)
+          vim.keymap.set("n", "K", lsp.buf.hover, opts)
+          vim.keymap.set("n", "<leader>rn", lsp.buf.rename, opts)
+          vim.keymap.set("n", "<leader>ca", lsp.buf.code_action, opts)
+          vim.keymap.set("n", "<leader>f", function() lsp.buf.format({ async = true }) end, opts)
+        end
+      })
+    })
+    '';
+    };
 }
 
