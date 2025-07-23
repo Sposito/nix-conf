@@ -52,6 +52,7 @@ in
       fira-code
       firefox
       hwinfo
+      ghostty
       inkscape
       keymapp
       lazygit
@@ -64,6 +65,10 @@ in
       python3
       python3Packages.pip
       rclone
+      ripgrep
+      shfmt
+      statix
+      stylua
       sysbench
       transmission_4-gtk
       uget
