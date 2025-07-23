@@ -13,6 +13,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager/release-25.05";
     };
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";

@@ -1,4 +1,3 @@
-# ~/.config/nixpkgs/home.nix
 { inputs
 , lib
 , pkgs
@@ -19,6 +18,7 @@ in
     ./kitty.nix
     ./maker.nix
     ./zsh.nix
+    ./vim.nix
   ];
 
   nixpkgs = {
