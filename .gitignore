@@ -109,5 +109,6 @@ custom/*/result/*
 result/*
 result/
 
+#specfic
 .vscode/
 custom/pc-monitor/statlogger
