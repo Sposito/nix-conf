@@ -47,6 +47,19 @@
       userland-proxy = false;
       experimental = true;
       metrics-addr = "0.0.0.0:9323";
+
+      default-runtime = "nvidia";
+      runtimes = {
+        nvidia = {
+          path = "nvidia-container-runtime";
+          };
+        nvidia-cdi = {
+          path = "nvidia-container-runtime.cdi";
+        };
+        nvidia-legacy = {
+          path = "nvidia-container-runtime.legacy";
+        };
+      };
     };
   };
 
