@@ -19,8 +19,9 @@
       "sd_mod"
       "ahci"
     ];
+    kernelParams = [ "amd_pstate=active" ];
     initrd.kernelModules = [ ];
-    kernelModules = [ "kvm-intel" ];
+    kernelModules = [ "kvm-amd" ];
     extraModulePackages = [ ];
   };
 
@@ -51,9 +52,11 @@
 
   networking = {
     useDHCP = lib.mkDefault true;
-    interfaces.enp6s0.wakeOnLan.enable = true;
-    interfaces.enp5s0.wakeOnLan.enable = true;
   };
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.enableRedistributableFirmware = true;
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;  
+
 }

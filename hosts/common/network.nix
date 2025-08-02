@@ -37,7 +37,6 @@
 
       hosts = [
         "unix:///var/run/docker.sock"
-        "tcp://100.99.44.69:2375"
       ];
 
       features = {
@@ -52,7 +51,7 @@
       runtimes = {
         nvidia = {
           path = "nvidia-container-runtime";
-          };
+        };
         nvidia-cdi = {
           path = "nvidia-container-runtime.cdi";
         };
