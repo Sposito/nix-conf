@@ -1,20 +1,16 @@
 {
-  pkgs,
   ...
 }:
 
 {
-  programs.waybar = {
-    enable = true;
-    systemd.enable = true;
-  };
-  home.packages = with pkgs; [
-    waybar
+  imports = [
+    ./waybar
   ];
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
       "$mod" = "SUPER";
+      layerrule = "ignorezero, waybar";
       bind = [
         "$mod, q, exec, kitty"
         "$mod, c, killactive,"
@@ -74,11 +70,11 @@
         ", XF86AudioPrev, exec, playerctl previous"
       ];
 
-      monitor = ",preferred,auto,auto";
       env = [
         "XCURSOR_SIZE,24"
         "HYPRCURSOR_SIZE,24"
       ];
+      monitor = [ ",preferred,auto,auto" ];
 
       general = {
         gaps_in = 2;

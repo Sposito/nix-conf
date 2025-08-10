@@ -1,14 +1,15 @@
 # ~/.config/nixpkgs/home.nix
-{ inputs
-, lib
-, pkgs
-, ...
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 {
 
   imports = [
     ./gnome.nix
-    ./hyprland.nix
+    ./hyprland
     ./jetbrains.nix
     ./kitty.nix
     ./polymc.nix

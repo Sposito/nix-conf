@@ -1,0 +1,47 @@
+{
+  "layer": "top",
+  "position": "top",
+  "exclusive": true,
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/window"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "pulseaudio",
+    "battery",
+    "network",
+    "tray"
+  ],
+  "clock": {
+    "format": "{:%d-%m %H:%M}",
+    "interval": 1
+  },
+  "battery": {
+    "format": "{capacity}% {icon}",
+    "format-charging": "{capacity}% ⚡",
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "network": {
+    "format-wifi": "󰖩 {essid}",
+    "format-ethernet": " {ipaddr}",
+    "format-disconnected": " 󰖪 "
+  },
+  "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-muted": "󰝟",
+    "format-icons": [
+      "",
+      "",
+      ""
+    ]
+  }
+}

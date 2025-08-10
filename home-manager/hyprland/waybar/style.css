@@ -1,0 +1,21 @@
+* {
+  font-family:
+    JetBrainsMono Nerd Font,
+    sans-serif;
+  font-size: 13px;
+  border: none;
+  padding: 0 8px;
+}
+
+window#waybar {
+  background-color: rgba(30, 30, 30, 0.95);
+  color: white;
+}
+
+#clock,
+#battery,
+#network,
+#pulseaudio,
+#tray {
+  padding: 10 10px;
+}
