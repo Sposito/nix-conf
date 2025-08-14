@@ -71,7 +71,6 @@
     noto-fonts-cjk-sans
     noto-fonts-emoji
     noto-fonts-extra
-    symbola
   ];
 
   hardware = {
@@ -144,7 +143,17 @@
       alsa.support32Bit = true;
       pulse.enable = true;
     };
-    pulseaudio.enable = false;
+
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+      extraConfig = ''
+        [server]
+        allow-interfaces=wlp7s0
+      '';
+    };
+
     earlyoom = {
       enable = true;
       freeMemThreshold = 5;

@@ -65,13 +65,14 @@ in
       rclone
       ripgrep
       shfmt
+      spotify-qt
+      librespot
       statix
       stylua
       sysbench
       transmission_4-gtk
       uget
       unzip
-      whatsapp-for-linux
     ];
 
   };
