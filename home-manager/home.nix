@@ -1,6 +1,7 @@
 { inputs
 , lib
 , pkgs
+, config
 , ...
 }:
 let
@@ -42,10 +43,7 @@ in
 
   home = {
     username = "thiago";
-    #   fonts.packages = with pkgs; [
-    # nerd-fonts.fira-code
-    # nerd-fonts.droid-sans-mono
-    #];
+
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
       direnv
@@ -85,9 +83,21 @@ in
       lfs.enable = true;
       userEmail = "sposito.thiago@gmail.com";
       userName = "Thiago Sposito";
+  includes = [
+    {
+      condition = "gitdir:/home/thiago/Projects/lunaria/";
+      path = "${config.home.homeDirectory}/.gitconfig-lunaria";
+    }
+  ];
+
     };
     home-manager.enable = true;
   };
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
+  home.file.".gitconfig-lunaria".text = ''
+    [user]
+      name = Thiago Sposito
+      email = git@sposito.ch
+  '';
   home.stateVersion = "24.05";
 }

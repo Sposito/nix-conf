@@ -57,6 +57,6 @@
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.enableRedistributableFirmware = true;
   hardware.bluetooth.enable = true;
-  services.blueman.enable = true;  
+  services.blueman.enable = true;
 
 }

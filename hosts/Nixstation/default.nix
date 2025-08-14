@@ -61,10 +61,19 @@
     NIXOS_HOST = "nixstation";
     NIXOS_DE = "gnome";
   };
-  fonts.packages = with pkgs.nerd-fonts; [
-    droid-sans-mono
-    fira-code
+
+  fonts.packages = with pkgs; [
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.hack
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-emoji
+    noto-fonts-extra
+    symbola
   ];
+
   hardware = {
     sane.enable = true;
     graphics.enable = true;
