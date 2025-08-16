@@ -13,4 +13,5 @@
     (config.nixpkgs.config.allowUnfree or false);
 
   services.mbpfan.enable = lib.mkDefault true;
+  hardware.cpu.intel.updateMicrocode = true;
 }

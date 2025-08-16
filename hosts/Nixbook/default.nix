@@ -8,11 +8,16 @@
 
   networking.hostName = "Nixbook";
 
+  users.users.thiago.extraGroups = [ "input" ];
+
   programs.hyprland.enable = true;
   programs.hyprland.withUWSM = true;
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
+    XDG_SESSION_TYPE = "wayland";
+    QT_QPA_PLATFORM = "wayland";
+    GDK_BACKEND = "wayland";
   };
 
   services = {
@@ -35,6 +40,13 @@
         PasswordAuthentication = false;
       };
     };
+
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
   };
 
   environment.systemPackages = with pkgs; [
@@ -49,6 +61,10 @@
     nixpkgs-fmt
     rclone
     wget
+    pulseaudio
+    networkmanagerapplet
+    brightnessctl
+    playerctl
   ];
 
   system.stateVersion = "23.11";

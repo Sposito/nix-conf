@@ -67,6 +67,13 @@
       whatsapp-for-linux
       wl-clipboard
       direnv
+      wofi
+      xfce.thunar
+      fuzzel
+      rofi-wayland
+      dmenu
+      j4-dmenu-desktop
+      papirus-icon-theme
     ];
   };
 

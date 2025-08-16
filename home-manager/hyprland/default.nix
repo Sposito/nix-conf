@@ -6,6 +6,65 @@
   imports = [
     ./waybar
   ];
+  
+  home.sessionVariables = {
+    fileManager = "thunar";
+    menu = "fuzzel --show drun";
+    run = "fuzzel --show run";
+    file = "fuzzel --show file";
+  };
+
+  home.file.".config/fuzzel/fuzzel.ini".text = ''
+[main]
+font=JetBrainsMono Nerd Font:size=12
+icon-theme=Papirus
+icon-size=16
+layer=overlay
+anchor=top
+margin-top=10
+margin-left=10
+margin-right=10
+width=40
+height=30
+background-color=#2e3440
+text-color=#eceff4
+selection-color=#5e81ac
+selection-text-color=#eceff4
+border-width=1
+border-color=#4c566a
+corner-radius=8
+padding-left=12
+padding-right=12
+padding-top=8
+padding-bottom=8
+horizontal-pad=8
+vertical-pad=4
+dpi-aware=yes
+prompt-text=>
+log-level=warning
+log-no-syslog=yes
+log-file=
+
+[keybindings]
+scroll-up=ctrl+k,Up,scroll-0
+scroll-down=ctrl+j,Down,scroll-1
+page-up=Page_Up,scroll-page-0
+page-down=Page_Down,scroll-page-1
+beginning-of-list=Home
+end-of-list=End
+cancel=ctrl+g,Escape
+select=Return,KP_Enter
+select-1=1
+select-2=2
+select-3=3
+select-4=4
+select-5=5
+select-6=6
+select-7=7
+select-8=8
+select-9=9
+  '';
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
@@ -18,8 +77,11 @@
         "$mod, e, exec, $fileManager"
         "$mod, v, togglefloating"
         "$mod, r, exec, $menu"
-        "$mod, p, pseudo," # dwindle
-        "$mod, j, togglesplit," # dwindle
+        "$mod, p, pseudo,"
+        "$mod, j, togglesplit,"
+        
+        "$mod, d, exec, $run"
+        "$mod, f, exec, $file"
 
         "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"

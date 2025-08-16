@@ -17,5 +17,8 @@ window#waybar {
 #network,
 #pulseaudio,
 #tray {
-  padding: 10 10px;
+  padding: 10px;
+  margin: 0 2px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.05);
 }
