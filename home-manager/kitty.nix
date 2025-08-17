@@ -11,7 +11,9 @@
       font = "ComicShannsMono Nerd Font Mono";
       inactive_text_alpha = "0.6";
       macos_thicken_font = "0.75";
-      background_blur = 1;
+      background_blur = 8;
+      background_opacity = "0.1";
+      background_color = "#000000";
     };
   };
 }
