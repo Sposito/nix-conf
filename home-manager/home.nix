@@ -54,6 +54,7 @@
       transmission_4-qt
       uget
       unzip
+      kanshi
       whatsapp-for-linux
       wl-clipboard
       direnv

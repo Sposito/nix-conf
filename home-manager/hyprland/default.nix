@@ -138,7 +138,11 @@ select-9=9
         "XCURSOR_SIZE,24"
         "HYPRCURSOR_SIZE,24"
       ];
-      monitor = [ ",preferred,auto,auto" ];
+      monitor = [ 
+        ",preferred,auto,auto"
+        "HDMI-A-2,1920x1080@50,0x0,1"
+        "eDP-1,2560x1600@60,1920x0,2"
+      ];
 
       general = {
         gaps_in = 2;
@@ -213,6 +217,8 @@ select-9=9
       misc = {
         force_default_wallpaper = -1;
         disable_hyprland_logo = true;
+        vfr = true;
+        vrr = 0;
       };
 
       input = {
