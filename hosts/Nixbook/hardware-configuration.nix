@@ -11,7 +11,7 @@
     initrd.availableKernelModules = [ "xhci_pci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-intel" "applesmc" "coretemp"];
-    kernelPackages = pkgs.linuxPackages_6_12;
+    kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = [ ];
   };
 

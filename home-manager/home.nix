@@ -6,7 +6,6 @@
   ...
 }:
 {
-
   imports = [
     ./gnome.nix
     ./hyprland
@@ -49,12 +48,6 @@
       luarocks
       nil
       nixpkgs-fmt
-      (nerdfonts.override {
-        fonts = [
-          "FiraCode"
-          "DroidSansMono"
-        ];
-      })
       nordic
       obsidian
       rclone
@@ -67,13 +60,7 @@
       whatsapp-for-linux
       wl-clipboard
       direnv
-      wofi
-      xfce.thunar
-      fuzzel
-      rofi-wayland
-      dmenu
-      j4-dmenu-desktop
-      papirus-icon-theme
+      swaybg
     ];
   };
 
