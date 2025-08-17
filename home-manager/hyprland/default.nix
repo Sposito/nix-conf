@@ -65,6 +65,8 @@ select-8=8
 select-9=9
   '';
 
+  home.file.".config/kanshi/config".source = ./kanshi.config;
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
