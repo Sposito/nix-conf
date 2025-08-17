@@ -5,7 +5,8 @@
     disko.url = "github:nix-community/disko";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixvim.url = "github:sposito/nixvim";
+    nixvim.url = "github:nix-community/nixvim";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -14,8 +15,6 @@
     vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";
     };
-
-    ghostty.url = "github:ghostty-org/ghostty";
 
     flake-utils.follows = "vscode-extensions/flake-utils";
     vs-extensions-pkgs.follows = "vscode-extensions/nixpkgs";
@@ -68,6 +67,7 @@
           modules = [
             ./home-manager/home.nix
             { custom.sessionType = "wayland"; }
+            inputs.nixvim.homeManagerModules.nixvim
           ];
         };
         "thiago@Nixstation" = home-manager.lib.homeManagerConfiguration {

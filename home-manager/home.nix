@@ -39,7 +39,6 @@
       firefox
       hwinfo
       inkscape
-      inputs.nixvim.packages.x86_64-linux.default
       lazygit
       libinput
       luarocks
@@ -70,8 +69,26 @@
       userName = "Thiago Sposito";
 
     };
+
+    nixvim = {
+      enable = true;
+      plugins.copilot-lua = {
+        enable = true;
+        settings.copilot_node_command = "${pkgs.nodejs_22}/bin/node";
+      };
+    };
+    
     home-manager.enable = true;
   };
+
+  nix = {
+    package = pkgs.nixVersions.stable;
+    settings = {
+      experimental-features = [ "nix-command" "flakes" ];
+      eval-cache = true;
+    };
+  };
+
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
   home.stateVersion = "24.05";
 }
