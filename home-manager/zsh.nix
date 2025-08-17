@@ -14,11 +14,6 @@ in
   };
 
   config = {
-    home.file."scripts/lsgpu.sh" = {
-      source = ./scripts/lsgpu.sh;
-      executable = true;
-    };
-
     programs.zsh = {
       enable = true;
       autosuggestion.enable = true;
@@ -32,8 +27,6 @@ in
           "vi" = "nvim";
           "vim" = "nvim";
           "ll" = "ls -l";
-          "code" = "code-insiders";
-          "lsgpu" = "$HOME/scripts/lsgpu.sh";
         }
 
         (lib.mkIf isWayland {

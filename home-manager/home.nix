@@ -7,11 +7,8 @@
 }:
 {
   imports = [
-    ./gnome.nix
     ./hyprland
-    ./jetbrains.nix
     ./kitty.nix
-    ./polymc.nix
     ./zsh.nix
   ];
 
@@ -52,9 +49,9 @@
       obsidian
       rclone
       sysbench
-      telegram-desktop
+      nerd-fonts.gohufont
       tor-browser
-      transmission_4-gtk
+      transmission_4-qt
       uget
       unzip
       whatsapp-for-linux
@@ -65,18 +62,6 @@
   };
 
   programs = {
-    vscode = {
-      enable = true;
-
-      package = (pkgs.vscode.override { isInsiders = true; }).overrideAttrs (_oldAttrs: rec {
-        src = builtins.fetchTarball {
-          url = "https://update.code.visualstudio.com/latest/linux-x64/insider";
-          sha256 = "1qi22w461nb2hjn38qhh9m9sdnnczfradq2c7ck2kadl2yn3wfx7";
-        };
-        version = "latest";
-      });
-    };
-
     git = {
       enable = true;
       lfs.enable = true;
