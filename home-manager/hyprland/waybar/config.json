@@ -7,7 +7,8 @@
     "hyprland/window"
   ],
   "modules-center": [
-    "clock"
+    "clock",
+    "temperature"
   ],
   "modules-right": [
     "pulseaudio",
@@ -16,32 +17,42 @@
     "tray"
   ],
   "clock": {
-    "format": "{:%d-%m %H:%M}",
+    "format": "{:%d/%m %H:%M}",
     "interval": 1
+  },
+  "temperature": {
+    "hwmon-path-abs": "/sys/class/hwmon/hwmon1/temp1_input",
+    "format": " {temperatureC}°C",
+    "critical-threshold": 90,
+    "format-icons": [
+      "",
+      "",
+      ""
+    ]
   },
   "battery": {
     "format": "{capacity}% {icon}",
     "format-charging": "{capacity}% ⚡",
     "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      ""
+      "",
+      "",
+      "",
+      "",
+      ""
     ]
   },
   "network": {
-    "format-wifi": "󰖩 {essid}",
-    "format-ethernet": " {ipaddr}",
-    "format-disconnected": " 󰖪 "
+    "format-wifi": " {essid}",
+    "format-ethernet": " {ipaddr}",
+    "format-disconnected": "  "
   },
   "pulseaudio": {
     "format": "{volume}% {icon}",
-    "format-muted": "󰝟",
+    "format-muted": "",
     "format-icons": [
-      "",
-      "",
-      ""
+      "",
+      "",
+      ""
     ]
   }
 }
