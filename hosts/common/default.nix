@@ -48,9 +48,17 @@
       auto-optimise-store = true;
     };
   };
+
   nixpkgs.config.allowUnfree = true;
   programs.zsh.enable = true;
-  services.pcscd.enable = true;
+  services = {
+    pcscd.enable = true;
+    xserver.displayManager.sessionCommands = 
+      "${pkgs.xorg.xmodmap}/bin/xmodmap -e 'keycode 64 = Alt_L'";
+
+  };
+  users.groups.scard = {};
+
   time.timeZone = "America/Sao_Paulo";
   users.defaultUserShell = pkgs.zsh;
 }

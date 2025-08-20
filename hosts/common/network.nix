@@ -32,39 +32,42 @@
     enable = true;
     package = pkgs.docker_25;
     storageDriver = "btrfs";
-
     daemon.settings = {
-
-      hosts = [
-        "unix:///var/run/docker.sock"
-      ];
-
-      features = {
-        cdi = true;
-      };
-
+      hosts = [ "unix:///var/run/docker.sock" ];
+      features.cdi = true;
       userland-proxy = false;
       experimental = true;
       metrics-addr = "0.0.0.0:9323";
-
-      default-runtime = "nvidia";
-      runtimes = {
-        nvidia = {
-          path = "nvidia-container-runtime";
-        };
-        nvidia-cdi = {
-          path = "nvidia-container-runtime.cdi";
-        };
-        nvidia-legacy = {
-          path = "nvidia-container-runtime.legacy";
-        };
-      };
-    };
   };
 
-  environment.systemPackages = with pkgs; [
-    nvidia-docker
-  ];
+    # daemon.settings = {
+
+    #   hosts = [
+    #     "unix:///var/run/docker.sock"
+    #   ];
+
+    #   features = {
+    #     cdi = true;
+    #   };
+
+    #   userland-proxy = false;
+    #   experimental = true;
+    #   metrics-addr = "0.0.0.0:9323";
+
+    #   default-runtime = "nvidia";
+    #   runtimes = {
+    #     nvidia = {
+    #       path = "nvidia-container-runtime";
+    #     };
+    #     nvidia-cdi = {
+    #       path = "nvidia-container-runtime.cdi";
+    #     };
+    #     nvidia-legacy = {
+    #       path = "nvidia-container-runtime.legacy";
+    #     };
+    #   };
+    # };
+  };
 
   services.samba = {
     enable = true;

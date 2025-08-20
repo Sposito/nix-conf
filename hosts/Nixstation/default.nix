@@ -120,6 +120,7 @@
     dconf.enable = true;
     virt-manager.enable = true;
   };
+  security.pam.services.gdm.enableGnomeKeyring = true;
   security.rtkit.enable = true;
   services = {
     xserver = {
@@ -132,6 +133,7 @@
     displayManager.autoLogin.enable = true;
     displayManager.autoLogin.user = "thiago";
     flatpak.enable = true;
+    gnome.gnome-keyring.enable = true;
     xrdp = {
       enable = false;
       defaultWindowManager = "gnome-remote-desktop";

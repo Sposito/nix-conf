@@ -11,6 +11,7 @@ in
       [
         "networkmanager"
         "wheel"
+        "scard"
       ]
       ++ ifTheyExist [
         "wireshark"

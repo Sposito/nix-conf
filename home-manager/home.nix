@@ -46,7 +46,9 @@ in
 
     homeDirectory = "/home/thiago";
     packages = with pkgs; [
+      boxbuddy
       direnv
+      distrobox
       fira-code
       firefox
       hwinfo
@@ -94,6 +96,29 @@ in
     };
     home-manager.enable = true;
   };
+    systemd.user.services.librespot-connect = {
+    Unit = {
+      Description = "Librespot (Spotify Connect) bound to LAN interface";
+      After = [ "network.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.librespot}/bin/librespot \
+        --name LS-TEST \
+        --backend pulseaudio \
+        --device default \
+        --bitrate 320 \
+        --disable-audio-cache \
+        --enable-volume-normalisation \
+        --initial-volume 75 \
+        --zeroconf-port 17005";
+      Restart = "on-failure";
+      BindToDevice = "wlp7s0"; # Force binding to LAN interface
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
   systemd.user.startServices = "sd-switch"; # Nicely reload system units when changing configs
   home.file.".gitconfig-lunaria".text = ''
     [user]

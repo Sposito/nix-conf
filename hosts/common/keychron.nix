@@ -28,7 +28,10 @@
               key <AC03> {
                 type= "ALPHABETIC",
                 symbols[Group1]= [ c, C, ccedilla, Ccedilla ]
+              
               };
+              replace key <LALT> { [ Alt_L, Meta_L ] };
+
             };
           '';
         };

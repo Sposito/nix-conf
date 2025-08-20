@@ -46,7 +46,6 @@
     glxinfo
     libepoxy
     libglvnd
-    #looking-glass-client
     nvidia-container-toolkit
     cudaPackages.cudatoolkit
     cudaPackages.cuda_nvcc
